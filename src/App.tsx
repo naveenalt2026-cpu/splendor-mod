@@ -8,6 +8,8 @@ import { MobileJoinScreen } from './components/MobileJoinScreen.tsx';
 import { MobileLobbyWaiting } from './components/MobileLobbyWaiting.tsx';
 import { MobileReconnectingScreen } from './components/MobileReconnectingScreen.tsx';
 import { SoloTableView } from './components/SoloTableView.tsx';
+import { LandingBackground } from './components/LandingBackground.tsx';
+import { ambientMusic } from './game/ambientMusic.ts';
 import { getStoredHostSession, getStoredPlayerSession } from './utils/sessionStorage.ts';
 
 type AppMode = 'choose_mode' | 'host' | 'player' | 'solo';
@@ -60,6 +62,17 @@ export default function App() {
       createHostSession(15);
     }
   }, [mode, sessionId, createHostSession]);
+
+  // Manage ambient music lifecycle based on active view mode
+  useEffect(() => {
+    if (mode === 'choose_mode') {
+      if (!ambientMusic.getIsMuted()) {
+        ambientMusic.start();
+      }
+    } else {
+      ambientMusic.stop();
+    }
+  }, [mode]);
 
   // -------------------------------------------------------------
   // ROUTE 1: Dedicated Host View (Central Shared Board on TV/Tablet)
@@ -188,11 +201,14 @@ export default function App() {
   if (mode === 'choose_mode') {
     return (
       <div className="min-h-screen bg-[#0B0F1A] text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 select-none relative overflow-hidden font-sans">
-        {/* Soft background ambient glow */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-radial from-amber-500/10 via-amber-500/5 to-transparent blur-3xl pointer-events-none" />
+        {/* Animated 3D Gems, Golden Stardust, Volumetric Light Rays & Video Background */}
+        <LandingBackground defaultMode="combined" />
 
-        <div className="w-full max-w-xl p-6 sm:p-8 rounded-3xl bg-[#121826] border border-white/8 shadow-2xl backdrop-blur-md flex flex-col items-center text-center relative z-10">
-          <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.25)] mb-4">
+        <div className="w-full max-w-xl p-6 sm:p-8 rounded-3xl bg-[#121826]/90 border border-amber-400/30 shadow-[0_25px_70px_rgba(0,0,0,0.85),0_0_40px_rgba(245,158,11,0.18)] backdrop-blur-xl flex flex-col items-center text-center relative z-10 transition-all">
+          {/* Subtle Top Golden Accent Line */}
+          <div className="absolute top-0 inset-x-8 h-[2px] bg-gradient-to-r from-transparent via-amber-400/80 to-transparent" />
+
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/50 flex items-center justify-center text-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.35)] mb-4 animate-gem-float">
             <Crown size={32} className="stroke-[2.5]" />
           </div>
 
@@ -212,13 +228,15 @@ export default function App() {
             {/* 1. Host Mode (Featured Primary Option) */}
             <button
               type="button"
+              onMouseEnter={() => ambientMusic.playCardHover(0)}
               onClick={() => {
+                ambientMusic.stop();
                 setMode('host');
                 createHostSession(15);
               }}
-              className="w-full p-4 rounded-2xl bg-[#0B0F1A] hover:bg-[#0B0F1A]/80 border border-amber-500/40 hover:border-amber-400 flex items-center gap-4 transition-all hover:scale-[1.01] shadow-lg hover:shadow-[0_0_25px_rgba(245,158,11,0.25)] cursor-pointer text-left group"
+              className="w-full p-4 rounded-2xl bg-[#0B0F1A]/80 hover:bg-[#0B0F1A] border border-amber-500/50 hover:border-amber-400 flex items-center gap-4 transition-all hover:scale-[1.015] shadow-lg hover:shadow-[0_0_30px_rgba(245,158,11,0.3)] cursor-pointer text-left group backdrop-blur-md"
             >
-              <div className="w-12 h-12 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow">
+              <div className="w-12 h-12 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-[0_0_15px_rgba(245,158,11,0.5)]">
                 <Tv size={24} className="stroke-[2.5]" />
               </div>
               <div className="flex-1 min-w-0">
@@ -237,14 +255,18 @@ export default function App() {
             {/* 2. Join as Mobile Player */}
             <button
               type="button"
-              onClick={() => setMode('player')}
-              className="w-full p-4 rounded-2xl bg-[#0B0F1A] hover:bg-white/5 border border-white/8 hover:border-amber-400/50 flex items-center gap-4 transition-all hover:scale-[1.01] cursor-pointer text-left group"
+              onMouseEnter={() => ambientMusic.playCardHover(1)}
+              onClick={() => {
+                ambientMusic.stop();
+                setMode('player');
+              }}
+              className="w-full p-4 rounded-2xl bg-[#0B0F1A]/80 hover:bg-[#0B0F1A] border border-sky-500/30 hover:border-sky-400/70 flex items-center gap-4 transition-all hover:scale-[1.015] shadow-md hover:shadow-[0_0_25px_rgba(56,189,248,0.25)] cursor-pointer text-left group backdrop-blur-md"
             >
-              <div className="w-12 h-12 rounded-xl bg-white/5 text-amber-300 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform border border-white/10">
+              <div className="w-12 h-12 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform border border-sky-400/40 shadow">
                 <Smartphone size={24} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-['Cinzel'] font-black text-base text-slate-200 group-hover:text-amber-200">
+                <div className="font-['Cinzel'] font-black text-base text-slate-200 group-hover:text-sky-200">
                   JOIN ON MOBILE
                 </div>
                 <div className="text-xs text-slate-400 mt-0.5">
@@ -256,17 +278,21 @@ export default function App() {
             {/* 3. Solo Practice vs AI */}
             <button
               type="button"
-              onClick={() => setMode('solo')}
-              className="w-full p-3.5 rounded-2xl bg-[#0B0F1A]/60 hover:bg-white/5 border border-white/5 hover:border-white/15 flex items-center gap-4 transition-all cursor-pointer text-left group"
+              onMouseEnter={() => ambientMusic.playCardHover(2)}
+              onClick={() => {
+                ambientMusic.stop();
+                setMode('solo');
+              }}
+              className="w-full p-3.5 rounded-2xl bg-[#0B0F1A]/60 hover:bg-[#0B0F1A]/90 border border-emerald-500/20 hover:border-emerald-400/50 flex items-center gap-4 transition-all hover:scale-[1.015] shadow-sm hover:shadow-[0_0_20px_rgba(16,185,129,0.2)] cursor-pointer text-left group backdrop-blur-md"
             >
-              <div className="w-12 h-12 rounded-xl bg-white/5 text-slate-400 flex items-center justify-center shrink-0 border border-white/5">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
                 <Users size={20} />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-['Cinzel'] font-bold text-sm text-slate-300 group-hover:text-amber-200">
+                <div className="font-['Cinzel'] font-bold text-sm text-slate-300 group-hover:text-emerald-200">
                   Solo Practice vs AI
                 </div>
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-slate-400">
                   Single-device mode against computer opponents.
                 </div>
               </div>
