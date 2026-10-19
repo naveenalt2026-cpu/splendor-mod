@@ -364,22 +364,22 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
 
         {/* Right Column: Player Game Details Scoreboard */}
         <aside
-          className="relative flex flex-col gap-2.5 w-full max-w-[320px] xl:max-w-[350px] 2xl:max-w-[380px] shrink-0 z-10 justify-self-center lg:justify-self-start"
+          className="relative flex flex-col gap-2 w-full max-w-[288px] xl:max-w-[316px] shrink-0 z-10 justify-self-center lg:justify-self-start"
           aria-label="Players Scoreboard"
         >
-          <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-[#070B14]/95 border border-amber-500/20 shadow-md shrink-0">
+          <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-[#121826]/80 border border-white/8 shrink-0">
             <div className="flex items-center gap-1.5">
-              <Crown size={16} className="text-amber-400" />
-              <span className="font-['Cinzel'] font-bold text-xs sm:text-sm uppercase tracking-wider text-amber-200">
+              <Crown size={14} className="text-amber-400" />
+              <span className="font-['Cinzel'] font-bold text-xs uppercase tracking-wider text-amber-200">
                 Scoreboard
               </span>
             </div>
-            <span className="text-xs text-slate-300 font-mono">
-              Target: <b className="text-amber-300 font-mono text-sm">{publicState.targetVP}</b> VP
+            <span className="text-[10px] text-slate-400 font-mono">
+              Target: <b className="text-amber-300 font-mono">{publicState.targetVP}</b> VP
             </span>
           </div>
 
-          <div className="flex flex-col gap-2.5 overflow-y-auto max-h-none lg:max-h-[calc(100vh-140px)] pr-0.5">
+          <div className="flex flex-col gap-2 overflow-y-auto max-h-none lg:max-h-[calc(100vh-140px)] pr-0.5">
             {publicState.players.map((p, idx) => {
               const isActive = idx === publicState.activePlayerIndex;
               const bonuses = calculateBonuses(p.cards);
@@ -389,36 +389,36 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
               return (
                 <div
                   key={p.id}
-                  className={`p-3 rounded-2xl border transition-all ${
+                  className={`p-2 sm:p-2.5 rounded-2xl border transition-all ${
                     isActive
-                      ? 'bg-[#141D2E] border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
-                      : 'bg-[#0C121E] border-white/8 shadow-md opacity-95 hover:opacity-100'
+                      ? 'bg-[#151e33] border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
+                      : 'bg-[#121826] border-white/8 opacity-90 hover:opacity-100'
                   }`}
                 >
                   {/* Row 1: Avatar, Name, VP score */}
-                  <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-white/5">
-                    <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-white/5">
+                    <div className="flex items-center gap-2 min-w-0">
                       <div className="relative shrink-0">
-                        <span className="text-2xl sm:text-3xl filter drop-shadow">{p.avatar}</span>
+                        <span className="text-2xl filter drop-shadow">{p.avatar}</span>
                         {isActive && (
-                          <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#141D2E] animate-pulse" />
+                          <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#151e33] animate-pulse" />
                         )}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-['Cinzel'] font-bold text-sm sm:text-base text-slate-100 truncate flex items-center gap-1.5">
+                        <div className="font-['Cinzel'] font-bold text-xs sm:text-sm text-slate-100 truncate flex items-center gap-1.5">
                           <span className={isActive ? 'text-amber-300 font-black' : 'text-slate-100'}>
                             {p.name}
                           </span>
                           {isActive && (
-                            <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black font-sans uppercase">
+                            <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-black font-sans uppercase">
                               TURN
                             </span>
                           )}
                         </div>
-                        <div className="text-xs text-slate-300 font-mono flex items-center gap-1.5 mt-0.5">
+                        <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">
                           <span>{p.cards.length} cards</span>
                           {p.reservedCardsCount > 0 && (
-                            <span className="text-amber-300 font-bold bg-amber-500/15 px-1.5 py-0.5 rounded border border-amber-500/30">
+                            <span className="text-amber-400 font-bold bg-amber-500/10 px-1 rounded border border-amber-500/20">
                               {p.reservedCardsCount} res
                             </span>
                           )}
@@ -427,36 +427,36 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
                     </div>
 
                     {/* Prestige Points */}
-                    <div className="flex items-center gap-1.5 bg-gradient-to-br from-amber-500/25 to-yellow-500/15 border border-amber-500/40 px-3 py-1.5 rounded-xl shrink-0 shadow-sm">
-                      <Crown size={16} className="text-amber-400" />
-                      <span className="font-['Cinzel'] font-black text-amber-300 text-base sm:text-lg leading-none">
+                    <div className="flex items-center gap-1 bg-gradient-to-br from-amber-500/20 to-yellow-500/10 border border-amber-500/40 px-2.5 py-1 rounded-xl shrink-0 shadow-sm">
+                      <Crown size={13} className="text-amber-400" />
+                      <span className="font-['Cinzel'] font-black text-amber-300 text-sm leading-none">
                         {p.prestigePoints}
                       </span>
-                      <span className="text-xs text-amber-400/80 font-mono font-bold leading-none">/{publicState.targetVP}</span>
+                      <span className="text-[9px] text-amber-400/70 font-mono leading-none">/{publicState.targetVP}</span>
                     </div>
                   </div>
 
                   {/* Unified Buying Power Strip (Total Power = Tokens + Discounts combined) */}
-                  <div className="bg-[#070B14]/80 rounded-xl p-2 sm:p-2.5 border border-white/6">
-                    <div className="flex items-center justify-between text-xs mb-1.5 px-0.5">
-                      <div className="flex items-center gap-1.5">
-                        <Zap size={14} className="text-amber-400" />
-                        <span className="text-slate-200 font-bold uppercase tracking-wider font-['Cinzel'] text-xs">
+                  <div className="bg-[#0B0F1A]/80 rounded-xl p-1.5 border border-white/5">
+                    <div className="flex items-center justify-between text-[10px] mb-1 px-0.5">
+                      <div className="flex items-center gap-1">
+                        <Zap size={11} className="text-amber-400" />
+                        <span className="text-slate-300 font-semibold uppercase tracking-wider font-['Cinzel'] text-[9.5px]">
                           Buying Power
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs font-mono">
-                        <span className={totalTokens > 8 ? 'text-amber-400 font-bold' : 'text-slate-300'} title="Tokens in hand / 10 max limit">
-                          {totalTokens}/10<span className="text-[9px] text-slate-400 ml-0.5">tok</span>
+                      <div className="flex items-center gap-1.5 text-[9.5px] font-mono">
+                        <span className={totalTokens > 8 ? 'text-amber-400 font-bold' : 'text-slate-400'} title="Tokens in hand / 10 max limit">
+                          {totalTokens}/10<span className="text-[8px] text-slate-500 ml-0.5">tok</span>
                         </span>
                         <span className="text-white/20">•</span>
                         <span className="text-amber-300 font-bold" title="Permanent card bonuses">
-                          +{totalBonuses}<span className="text-[9px] text-amber-400/80 ml-0.5">disc</span>
+                          +{totalBonuses}<span className="text-[8px] text-amber-500/80 ml-0.5">disc</span>
                         </span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-6 gap-1.5">
+                    <div className="grid grid-cols-6 gap-1">
                       {ALL_TOKENS.map(t => {
                         const isGold = t === 'gold';
                         const tokenCount = p.tokens[t] || 0;
@@ -467,14 +467,14 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
                         return (
                           <div
                             key={t}
-                            className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition-all ${
+                            className={`flex flex-col items-center justify-center py-1 px-0.5 rounded-lg border transition-all ${
                               hasPower
                                 ? isGold
-                                ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 shadow-sm ring-1 ring-amber-400/25'
-                                : bonusCount > 0
-                                ? 'bg-amber-500/10 border-amber-500/30 text-white shadow-sm ring-1 ring-amber-400/20'
-                                : 'bg-white/8 border-white/15 text-white shadow-xs'
-                                : 'bg-white/3 border-white/5 text-slate-400 opacity-60'
+                                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-300 shadow-xs'
+                                  : bonusCount > 0
+                                  ? 'bg-amber-500/8 border-amber-500/25 text-white shadow-xs'
+                                  : 'bg-white/5 border-white/10 text-white'
+                                : 'bg-white/[0.02] border-white/5 text-slate-500 opacity-60'
                             }`}
                             title={
                               isGold
@@ -488,11 +488,11 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
                                 type={t}
                                 size="sm"
                                 variant={isGold ? 'chip' : 'gem'}
-                                className="w-6 h-6 sm:w-7 sm:h-7 shrink-0"
+                                className="w-5 h-5 sm:w-5.5 sm:h-5.5 shrink-0"
                               />
                               {bonusCount > 0 && (
                                 <span
-                                  className="absolute -top-1.5 -right-2 bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-mono font-black text-[9px] sm:text-[10px] leading-none px-1.5 py-0.5 rounded-full border border-amber-100 shadow-xs z-10"
+                                  className="absolute -top-1.5 -right-2 bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-mono font-black text-[9px] leading-none px-1 py-0.5 rounded-full border border-amber-200/90 shadow-xs z-10"
                                   title={`+${bonusCount} permanent discount card${bonusCount === 1 ? '' : 's'}`}
                                 >
                                   +{bonusCount}
@@ -502,14 +502,14 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
 
                             {/* Total Buying Power under Gem Symbol */}
                             <span
-                              className={`font-mono font-black text-sm sm:text-base leading-none mt-2 text-center ${
+                              className={`font-mono font-black text-sm sm:text-base leading-none mt-1 ${
                                 hasPower
                                   ? isGold
                                     ? 'text-amber-300 font-black'
                                     : bonusCount > 0
                                     ? 'text-amber-100 font-black'
                                     : 'text-white'
-                                  : 'text-slate-400'
+                                  : 'text-slate-500 font-bold'
                               }`}
                             >
                               {totalPower}
