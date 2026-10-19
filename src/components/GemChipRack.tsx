@@ -3,29 +3,29 @@ import { GemType, TokenCount, TokenType } from '../types/game.ts';
 import { ALL_GEMS, TOKEN_COLORS } from '../game/constants.ts';
 import { GemIcon } from './GemIcon.tsx';
 import { canTakeTokens } from '../game/rules.ts';
-import { Check, X } from 'lucide-react';
+import { Check, X, Coins } from 'lucide-react';
 
 interface GemChipRackProps {
   bank: TokenCount;
-  stagedGems: GemType[];
-  onToggleStagedGem: (gem: GemType) => void;
-  onClearStaged: () => void;
-  onConfirmTake: () => void;
+  stagedGems?: GemType[];
+  onToggleStagedGem?: (gem: GemType) => void;
+  onClearStaged?: () => void;
+  onConfirmTake?: () => void;
   disabled?: boolean;
 }
 
 export const GemChipRack: React.FC<GemChipRackProps> = ({
   bank,
-  stagedGems,
+  stagedGems = [],
   onToggleStagedGem,
   onClearStaged,
   onConfirmTake,
   disabled = false,
 }) => {
+  const isInteractive = Boolean(onToggleStagedGem);
   const validation = canTakeTokens(stagedGems, bank);
   const isValidCombination = validation.valid;
 
-  // Count how many of each gem are currently staged
   const stagedCounts = stagedGems.reduce<Record<string, number>>((acc, g) => {
     acc[g] = (acc[g] || 0) + 1;
     return acc;
@@ -33,16 +33,19 @@ export const GemChipRack: React.FC<GemChipRackProps> = ({
 
   return (
     <aside
-      className="relative flex flex-row lg:flex-col items-center justify-between lg:justify-center p-2 sm:p-3 rounded-2xl bg-gradient-to-b from-slate-950/90 via-slate-900/80 to-slate-950/95 border-2 border-slate-800 shadow-2xl backdrop-blur-md z-10 w-full lg:w-auto"
-      aria-label="Gem Token Bank"
+      className="relative flex flex-row lg:flex-col items-center justify-between p-3.5 sm:p-4 rounded-2xl bg-[#121826] border border-white/8 shadow-xl backdrop-blur-md z-10 w-full lg:w-36 shrink-0"
+      aria-label="Gem Bank"
     >
-      {/* Ornate title */}
-      <div className="font-['Cinzel'] font-bold text-amber-200/90 text-xs tracking-wider uppercase mb-0 lg:mb-3 hidden sm:flex items-center gap-1">
-        <span>Gem Bank</span>
+      {/* Title */}
+      <div className="flex items-center gap-1.5 mb-0 lg:mb-3 pb-0 lg:pb-2.5 border-b-0 lg:border-b border-white/10 w-full justify-center">
+        <Coins size={14} className="text-amber-400" />
+        <span className="font-['Cinzel'] font-bold text-xs uppercase tracking-wider text-amber-200">
+          Gem Bank
+        </span>
       </div>
 
-      {/* Gem Chips Stack (Horizontal on mobile, Vertical on desktop) */}
-      <div className="flex flex-row lg:flex-col gap-2 sm:gap-3.5 items-center justify-center flex-wrap sm:flex-nowrap">
+      {/* Vertical Stacks for 5 Gems + Gold */}
+      <div className="flex flex-row lg:flex-col gap-2.5 sm:gap-3 items-center justify-center w-full flex-wrap sm:flex-nowrap">
         {ALL_GEMS.map(gem => {
           const availableCount = bank[gem] || 0;
           const stagedCount = stagedCounts[gem] || 0;
@@ -50,94 +53,87 @@ export const GemChipRack: React.FC<GemChipRackProps> = ({
           const isExhausted = availableCount === 0;
 
           return (
-            <div key={gem} className="relative group flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => onToggleStagedGem(gem)}
-                disabled={disabled || (isExhausted && stagedCount === 0)}
-                aria-label={`Select ${gem} token, ${availableCount} remaining in bank`}
-                className={`relative flex items-center justify-center p-1 rounded-full transition-transform focus:outline-none ${
-                  isStaged ? 'scale-115' : 'hover:scale-105 active:scale-95'
-                }`}
-              >
-                {/* Glowing ring when staged */}
-                {isStaged && (
-                  <div
-                    className="absolute -inset-1.5 rounded-full border-2 border-amber-300 animate-pulse pointer-events-none"
-                    style={{
-                      boxShadow: `0 0 16px ${TOKEN_COLORS[gem].glow}`,
-                    }}
-                  />
-                )}
-
+            <div
+              key={gem}
+              onClick={() => isInteractive && onToggleStagedGem && onToggleStagedGem(gem)}
+              className={`relative flex items-center justify-between w-full p-1.5 rounded-xl border transition-all ${
+                isStaged
+                  ? 'bg-amber-500/15 border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
+                  : 'bg-[#0B0F1A]/80 border-white/5 hover:border-white/15'
+              } ${
+                isInteractive && !disabled && !isExhausted ? 'cursor-pointer active:scale-95' : ''
+              } ${isExhausted ? 'opacity-35' : ''}`}
+            >
+              <div className="flex items-center gap-2">
                 <GemIcon
                   type={gem}
-                  size="xl"
-                  variant="chip"
-                  count={availableCount}
-                  selected={isStaged}
-                  disabled={disabled || isExhausted}
+                  size="md"
+                  variant="gem"
                   showGlow={isStaged}
                 />
-              </button>
+                <span className="text-xs font-['Cinzel'] text-slate-300 capitalize hidden sm:inline">
+                  {gem}
+                </span>
+              </div>
 
-              {/* Staged Indicator Badge */}
-              {isStaged && (
-                <div className="absolute -top-1 -left-1 bg-amber-400 text-slate-950 font-black text-xs w-5 h-5 rounded-full flex items-center justify-center shadow-lg border border-amber-200 animate-bounce z-20">
-                  +{stagedCount}
-                </div>
-              )}
+              {/* Large Clear Count */}
+              <div className="flex items-center gap-1 pr-1">
+                <span className="text-base sm:text-lg font-mono font-bold text-white">
+                  {availableCount}
+                </span>
+                {isStaged && (
+                  <span className="text-xs font-bold text-amber-400">
+                    (+{stagedCount})
+                  </span>
+                )}
+              </div>
             </div>
           );
         })}
 
-        {/* Gold Joker Coin (Display only - taken via Reserve) */}
-        <div className="relative group flex items-center gap-2 pt-1 border-t border-slate-800">
-          <div
-            className="relative p-1 rounded-full cursor-help"
-            title="Gold wildcards are granted when you Reserve a development card."
-          >
-            <GemIcon
-              type="gold"
-              size="xl"
-              variant="chip"
-              count={bank.gold}
-              showGlow={false}
-            />
+        {/* Gold Joker Coin */}
+        <div className="relative flex items-center justify-between w-full p-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 shadow-sm">
+          <div className="flex items-center gap-2">
+            <GemIcon type="gold" size="md" variant="chip" />
+            <span className="text-xs font-['Cinzel'] text-amber-200 capitalize hidden sm:inline">
+              Gold
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1 pr-1">
+            <span className="text-base sm:text-lg font-mono font-bold text-amber-300">
+              {bank.gold}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Staged Action Bar (If gems are staged) */}
-      {stagedGems.length > 0 && (
-        <div className="mt-4 pt-3 border-t border-slate-700/80 w-full flex flex-col gap-2 items-center animate-fade-in">
+      {/* Staged Action Bar (for interactive solo play) */}
+      {stagedGems.length > 0 && isInteractive && onConfirmTake && (
+        <div className="mt-3 pt-3 border-t border-white/10 w-full flex flex-col gap-1.5 items-center animate-fade-in">
           <button
             type="button"
             onClick={onConfirmTake}
             disabled={!isValidCombination || disabled}
-            className={`w-full py-1.5 px-2 rounded-xl font-['Cinzel'] font-bold text-xs flex items-center justify-center gap-1 shadow-lg transition-all ${
+            className={`w-full py-1.5 px-2 rounded-xl font-['Cinzel'] font-bold text-xs flex items-center justify-center gap-1 shadow-md transition-all ${
               isValidCombination && !disabled
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white cursor-pointer active:scale-95 shadow-emerald-900/50 ring-2 ring-emerald-400'
-                : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+                ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 cursor-pointer active:scale-95 shadow-[0_0_12px_rgba(16,185,129,0.4)]'
+                : 'bg-white/5 text-slate-500 cursor-not-allowed border border-white/5'
             }`}
           >
-            <Check size={14} />
-            <span>COLLECT ({stagedGems.length})</span>
+            <Check size={13} />
+            <span>Take ({stagedGems.length})</span>
           </button>
 
-          <button
-            type="button"
-            onClick={onClearStaged}
-            className="text-[10px] text-slate-400 hover:text-rose-400 flex items-center gap-1 transition-colors"
-          >
-            <X size={12} />
-            <span>Clear selection</span>
-          </button>
-
-          {!isValidCombination && (
-            <p className="text-[10px] text-amber-300 text-center leading-tight max-w-[120px]">
-              {validation.reason || 'Select 3 distinct or 2 of same (if 4+ in bank)'}
-            </p>
+          {onClearStaged && (
+            <button
+              type="button"
+              onClick={onClearStaged}
+              className="text-[10px] text-slate-400 hover:text-rose-400 flex items-center gap-1 cursor-pointer transition-colors"
+            >
+              <X size={11} />
+              <span>Reset</span>
+            </button>
           )}
         </div>
       )}

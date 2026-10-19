@@ -28,13 +28,13 @@ export const MobileJoinScreen: React.FC<MobileJoinScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 relative select-none">
-      {/* Background radial glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-80 h-80 bg-radial from-amber-500/20 via-yellow-600/5 to-transparent blur-3xl pointer-events-none" />
+    <div className="min-h-screen bg-[#0B0F1A] text-slate-100 flex flex-col items-center justify-center p-4 relative select-none font-sans">
+      {/* Background ambient glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-80 h-80 bg-radial from-amber-500/10 via-amber-500/5 to-transparent blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-sm p-6 rounded-3xl bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 border-2 border-amber-400/80 shadow-2xl flex flex-col items-center relative z-10">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center text-slate-950 shadow-[0_0_20px_rgba(251,191,36,0.5)] mb-3">
-          <Smartphone size={28} className="stroke-[2.5]" />
+      <div className="w-full max-w-sm p-6 rounded-3xl bg-[#121826] border border-white/8 shadow-2xl flex flex-col items-center relative z-10">
+        <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.25)] mb-3">
+          <Smartphone size={26} className="stroke-[2.5]" />
         </div>
 
         <h1 className="font-['Cinzel'] font-black text-xl text-amber-200 tracking-wider text-center">
@@ -55,7 +55,7 @@ export const MobileJoinScreen: React.FC<MobileJoinScreenProps> = ({
               value={sessionId}
               onChange={e => setSessionId(e.target.value.toUpperCase())}
               placeholder="e.g. GEM-492"
-              className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 font-['Cinzel'] font-black text-center text-lg text-amber-300 tracking-widest outline-none"
+              className="w-full px-3 py-2.5 rounded-xl bg-[#0B0F1A] border border-white/10 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 font-['Cinzel'] font-black text-center text-lg text-amber-300 tracking-widest outline-none"
               required
             />
           </div>
@@ -71,7 +71,7 @@ export const MobileJoinScreen: React.FC<MobileJoinScreenProps> = ({
               onChange={e => setPlayerName(e.target.value)}
               placeholder="Enter your name"
               maxLength={16}
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 focus:border-amber-400 font-semibold text-sm text-slate-100 outline-none"
+              className="w-full px-3 py-2.5 rounded-xl bg-[#0B0F1A] border border-white/10 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 font-medium text-sm text-slate-100 outline-none transition-colors"
               required
             />
           </div>
@@ -89,8 +89,8 @@ export const MobileJoinScreen: React.FC<MobileJoinScreenProps> = ({
                   onClick={() => setSelectedAvatar(avatar)}
                   className={`h-11 rounded-xl text-xl flex items-center justify-center border transition-all cursor-pointer ${
                     selectedAvatar === avatar
-                      ? 'bg-amber-950 border-amber-400 ring-2 ring-amber-400 scale-105 shadow'
-                      : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                      ? 'bg-amber-500/20 border-amber-400 ring-2 ring-amber-400/40 scale-105 shadow-md shadow-amber-500/10'
+                      : 'bg-[#0B0F1A] border-white/10 hover:border-white/20'
                   }`}
                 >
                   {avatar}
@@ -109,7 +109,7 @@ export const MobileJoinScreen: React.FC<MobileJoinScreenProps> = ({
           </button>
         </form>
 
-        <div className="mt-5 pt-4 border-t border-slate-800 w-full text-center">
+        <div className="mt-5 pt-4 border-t border-white/10 w-full text-center">
           <button
             type="button"
             onClick={onSwitchToHost}

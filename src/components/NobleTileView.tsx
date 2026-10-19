@@ -13,7 +13,6 @@ export const NobleTileView: React.FC<NobleTileViewProps> = ({
   playerBonuses,
   compact = false,
 }) => {
-  // Check if player satisfies requirements
   const isSatisfied = playerBonuses
     ? (Object.entries(noble.requirements) as [GemType, number][]).every(
         ([gem, count]) => (playerBonuses[gem] || 0) >= count
@@ -24,43 +23,42 @@ export const NobleTileView: React.FC<NobleTileViewProps> = ({
 
   return (
     <div
-      className={`relative rounded-xl border-2 transition-all duration-300 select-none flex flex-col justify-between shrink-0 ${
+      className={`relative rounded-2xl transition-all duration-200 select-none flex flex-col justify-between shrink-0 ${
         compact
-          ? 'w-24 min-h-[135px] p-2'
-          : 'w-28 sm:w-32 min-h-[152px] sm:min-h-[160px] p-2.5'
-      } ${
+          ? 'w-24 sm:w-26 min-h-[135px] p-2'
+          : 'w-28 sm:w-32 min-h-[148px] sm:min-h-[156px] p-2.5 sm:p-3'
+      } bg-[#121826] border shadow-md ${
         isSatisfied
-          ? 'border-amber-300 bg-gradient-to-b from-amber-950 via-slate-900 to-amber-950 shadow-[0_0_20px_rgba(251,191,36,0.6)] scale-[1.02] ring-2 ring-amber-400'
-          : 'border-slate-700/80 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 shadow-md hover:border-slate-500'
+          ? 'border-amber-400 ring-2 ring-amber-400/80 shadow-[0_0_20px_rgba(245,158,11,0.35)] scale-[1.02]'
+          : 'border-white/8 hover:border-white/20'
       }`}
       title={`${noble.name}: awards ${noble.prestigePoints} Prestige Points. Requirements: ${reqEntries
         .map(([g, c]) => `${c} ${g}`)
         .join(', ')}`}
     >
-      {/* Ornate corner filigree border accent */}
-      <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-amber-400/80 pointer-events-none" />
-      <div className="absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 border-amber-400/80 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 border-amber-400/80 pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-amber-400/80 pointer-events-none" />
-
-      {/* Header: 3 VP and Avatar */}
+      {/* Top: 3 VP crest and Noble Avatar */}
       <div>
-        <div className="flex items-center justify-between mb-0.5">
-          <div className="font-['Cinzel'] font-black text-amber-300 text-base sm:text-lg drop-shadow-md flex items-center leading-none">
-            {noble.prestigePoints}
-            <span className="text-[10px] text-amber-200/80 font-normal ml-0.5">VP</span>
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-baseline gap-0.5 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30">
+            <span className="font-['Cinzel'] font-black text-amber-300 text-sm sm:text-base leading-none">
+              {noble.prestigePoints}
+            </span>
+            <span className="text-[9px] text-amber-400 font-bold leading-none">VP</span>
           </div>
-          <div className="text-xl sm:text-2xl filter drop-shadow-md leading-none">{noble.avatar}</div>
+
+          <div className="text-xl sm:text-2xl filter drop-shadow leading-none">
+            {noble.avatar}
+          </div>
         </div>
 
-        {/* Noble Name */}
-        <div className="text-[10px] sm:text-[11px] font-['Cinzel'] font-bold text-amber-100/90 truncate text-center mb-2">
+        {/* Short noble name */}
+        <div className="text-[11px] font-['Cinzel'] font-bold text-slate-200 truncate text-center mb-2">
           {noble.name.split(' ')[0]}
         </div>
       </div>
 
-      {/* Requirements List with Progress - fully visible */}
-      <div className="flex flex-col gap-1.5 w-full mt-auto">
+      {/* Gem requirements list */}
+      <div className="flex flex-col gap-1 w-full mt-auto pt-1 border-t border-white/5">
         {reqEntries.map(([gem, count]) => {
           const currentBonus = playerBonuses ? playerBonuses[gem] || 0 : 0;
           const met = currentBonus >= count;
@@ -68,22 +66,20 @@ export const NobleTileView: React.FC<NobleTileViewProps> = ({
           return (
             <div
               key={gem}
-              className={`flex items-center justify-between px-2 py-1 rounded-md text-[11px] font-bold border transition-colors shadow-xs ${
+              className={`flex items-center justify-between px-2 py-0.5 rounded-md text-[10px] font-bold border transition-colors ${
                 met
-                  ? 'bg-emerald-950/90 border-emerald-500/80 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.3)]'
-                  : 'bg-black/70 border-slate-800 text-slate-200'
+                  ? 'bg-emerald-950/80 border-emerald-500/70 text-emerald-300'
+                  : 'bg-[#0B0F1A] border-white/10 text-slate-300'
               }`}
             >
               <div className="flex items-center gap-1.5">
                 <GemIcon type={gem} size="xs" variant="gem" />
-                <span className="font-['Cinzel'] font-black text-xs text-white">
-                  {count}
-                </span>
+                <span className="font-mono text-white text-xs">{count}</span>
               </div>
               {playerBonuses && (
                 <span
-                  className={`text-[10px] font-mono font-semibold ${
-                    met ? 'text-emerald-400' : 'text-slate-400'
+                  className={`text-[9px] font-mono ${
+                    met ? 'text-emerald-400 font-bold' : 'text-slate-500'
                   }`}
                 >
                   {currentBonus}/{count}
@@ -95,7 +91,7 @@ export const NobleTileView: React.FC<NobleTileViewProps> = ({
       </div>
 
       {isSatisfied && (
-        <div className="absolute -top-2 -right-1 bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded-full shadow-[0_0_10px_rgba(251,191,36,0.8)] border border-amber-100 animate-bounce">
+        <div className="absolute -top-2 -right-1 bg-amber-400 text-slate-950 font-black text-[9px] px-1.5 py-0.5 rounded-full shadow-[0_0_10px_rgba(251,191,36,0.8)] border border-amber-100 animate-bounce">
           CLAIM!
         </div>
       )}

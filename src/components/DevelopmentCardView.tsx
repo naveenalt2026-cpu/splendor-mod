@@ -39,193 +39,158 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
     }
   }, [isSelected]);
 
-  // Tier border styling & metallic sheen
-  const tierBorder =
-    card.tier === 3
-      ? 'border-amber-400 shadow-[0_4px_16px_rgba(251,191,36,0.35)]'
-      : card.tier === 2
-      ? 'border-sky-400 shadow-[0_4px_14px_rgba(56,189,248,0.3)]'
-      : 'border-emerald-500 shadow-[0_4px_12px_rgba(16,185,129,0.25)]';
-
-  const tierGlow =
-    card.tier === 3
-      ? 'from-amber-950/40 via-slate-900/90 to-slate-950'
-      : card.tier === 2
-      ? 'from-sky-950/40 via-slate-900/90 to-slate-950'
-      : 'from-emerald-950/40 via-slate-900/90 to-slate-950';
-
   return (
     <div
       onClick={onSelect}
-      className={`relative group rounded-xl border-2 transition-all duration-300 select-none ${tierBorder} bg-gradient-to-b ${tierGlow} ${
-        compact ? 'w-24 h-32 shrink-0' : 'w-28 sm:w-32 md:w-36 lg:w-40 h-40 sm:h-44 md:h-48 shrink-0'
-      } ${
+      className={`relative group rounded-2xl transition-all duration-200 select-none flex flex-col justify-between overflow-hidden ${
+        compact
+          ? 'w-24 sm:w-28 h-36 sm:h-40 p-2'
+          : 'w-28 sm:w-32 md:w-36 lg:w-[150px] h-44 sm:h-48 md:h-52 p-2.5 sm:p-3'
+      } bg-[#121826] border border-white/8 shadow-md hover:shadow-xl hover:border-white/20 ${
         isSelected
-          ? 'scale-110 z-40 ring-4 ring-cyan-400 shadow-[0_0_35px_rgba(6,182,212,0.9)] -translate-y-2'
+          ? 'ring-2 ring-amber-400 scale-[1.03] z-30 shadow-[0_0_25px_rgba(245,158,11,0.35)]'
           : canAfford
-          ? 'hover:scale-105 hover:-translate-y-1 hover:shadow-[0_0_22px_rgba(52,211,153,0.6)] cursor-pointer'
-          : 'hover:scale-102 hover:shadow-lg cursor-pointer'
-      } ${disabled ? 'opacity-50 pointer-events-none' : ''}`}
+          ? 'ring-1.5 ring-emerald-500/70 hover:ring-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)] hover:scale-[1.02] cursor-pointer'
+          : 'hover:scale-[1.01] cursor-pointer'
+      } ${disabled ? 'opacity-40 grayscale-[40%] pointer-events-none' : ''}`}
       role="button"
       tabIndex={0}
       aria-label={`${card.name}, Tier ${card.tier}, ${card.prestigePoints} Prestige Points, provides ${card.gemBonus} bonus`}
     >
       {/* Top Header: Prestige Points on Left, Gem Bonus Crest on Right */}
-      <div className="absolute top-1.5 left-2 right-2 flex items-center justify-between z-20 pointer-events-none">
-        {/* Prestige Points */}
+      <div className="flex items-center justify-between z-10">
         {card.prestigePoints > 0 ? (
-          <div className="font-['Cinzel'] font-black text-amber-300 text-lg sm:text-xl drop-shadow-[0_2px_4px_rgba(0,0,0,1)] flex items-center">
-            <span>{card.prestigePoints}</span>
-            <span className="text-[10px] text-amber-200/90 font-bold ml-0.5">VP</span>
+          <div className="flex items-baseline gap-0.5 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30">
+            <span className="font-['Cinzel'] font-black text-amber-300 text-sm sm:text-base leading-none">
+              {card.prestigePoints}
+            </span>
+            <span className="text-[9px] text-amber-400 font-bold leading-none">VP</span>
           </div>
         ) : (
-          <div />
+          <span className="text-[10px] font-mono text-slate-500 font-semibold px-1">
+            T{card.tier}
+          </span>
         )}
 
-        {/* Permanent Gem Bonus Circle */}
+        {/* Permanent Gem Bonus Crest */}
         <div
-          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center p-0.5 border-2 border-amber-300 shadow-lg"
+          className="flex items-center gap-1 px-1.5 py-0.5 rounded-full border border-white/10 shadow-sm"
           style={{
-            backgroundColor: 'rgba(3, 7, 18, 0.95)',
-            boxShadow: `0 0 12px ${gemColor.glow}`,
+            backgroundColor: `${gemColor.primary}20`,
+            boxShadow: `0 0 10px ${gemColor.glow}`,
           }}
-          title={`Permanent +1 ${gemColor.name} bonus`}
+          title={`Permanent +1 ${gemColor.name} discount`}
         >
-          <GemIcon type={card.gemBonus} size="sm" variant="gem" />
+          <GemIcon type={card.gemBonus} size="xs" variant="gem" />
         </div>
       </div>
 
-      {/* Renaissance Painting Central Window */}
-      <div className="absolute inset-x-2 top-8 bottom-12 rounded-lg overflow-hidden border border-amber-500/30 bg-gradient-to-b from-slate-900/90 via-slate-950 to-black flex flex-col items-center justify-center shadow-inner group-hover:brightness-110 transition-all">
-        {/* Radial gem atmosphere glow */}
-        <div
-          className="absolute inset-0 opacity-20 pointer-events-none"
-          style={{
-            background: `radial-gradient(circle at 50% 40%, ${gemColor.primary} 0%, transparent 75%)`,
-          }}
-        />
-
-        {/* Illustration Icon */}
-        <div className="text-3xl sm:text-4xl filter drop-shadow-[0_6px_10px_rgba(0,0,0,0.9)] transform group-hover:scale-115 transition-transform duration-300 z-10">
+      {/* Center: Large illustration & readable 2-line title */}
+      <div className="flex flex-col items-center justify-center my-auto py-1 z-10 text-center">
+        <div className="text-3xl sm:text-4xl filter drop-shadow-md transform group-hover:scale-110 transition-transform duration-200">
           {card.illustration}
         </div>
-
-        {/* Card Name Banner */}
-        <div className="absolute bottom-1 inset-x-1 text-center font-['Cinzel'] text-[10px] sm:text-[11px] text-amber-100 font-bold truncate z-10 px-1 drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">
+        <div className="font-['Cinzel'] font-semibold text-[11px] sm:text-xs text-slate-200 line-clamp-2 mt-1.5 px-1 leading-snug">
           {card.name}
         </div>
       </div>
 
-      {/* Bottom Cost Disc Pips (Grouped neatly at bottom) */}
-      <div className="absolute bottom-1.5 left-2 right-2 flex flex-wrap items-center gap-1 z-20 pointer-events-none">
+      {/* Bottom: Cost gems in a clean, aligned row */}
+      <div className="flex items-center justify-center gap-1 z-10 pt-1.5 border-t border-white/5">
         {(Object.entries(card.cost) as [GemType, number][]).map(([gem, cost]) => {
           if (!cost || cost <= 0) return null;
           const userBonus = affordability?.bonuses[gem] || 0;
-          const effectiveCost = Math.max(0, cost - userBonus);
-          const isSatisfied = effectiveCost === 0;
+          const isCovered = userBonus >= cost;
 
           return (
             <div
               key={gem}
-              className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full border text-[10px] font-black shadow transition-colors ${
-                isSatisfied
-                  ? 'bg-emerald-950/90 border-emerald-400 text-emerald-300'
-                  : 'bg-black/90 border-slate-700 text-slate-100'
+              className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold border transition-colors ${
+                isCovered
+                  ? 'bg-emerald-950/80 border-emerald-500/60 text-emerald-300'
+                  : 'bg-[#0B0F1A] border-white/10 text-slate-200'
               }`}
-              title={`${cost} ${gem} required (${userBonus} covered by permanent engine)`}
+              title={`${cost} ${gem} required (${userBonus} covered by permanent discount)`}
             >
               <GemIcon type={gem} size="xs" variant="gem" />
-              <span>{cost}</span>
+              <span className="font-mono">{cost}</span>
             </div>
           );
         })}
       </div>
 
-      {/* Green pulsating halo when affordable */}
+      {/* Subtle green highlight when affordable */}
       {canAfford && !isSelected && (
-        <div className="absolute inset-0 rounded-xl border-2 border-emerald-400/80 pointer-events-none animate-pulse" />
+        <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
       )}
 
-      {/* Action Overlay when Selected (Matching Reference Screenshot) */}
-      {isSelected && (
+      {/* Overlay action sheet when selected */}
+      {isSelected && onBuy && (
         <div
-          className="absolute inset-0 rounded-xl bg-slate-950/95 backdrop-blur-xs flex flex-col items-center justify-center gap-1.5 p-2 z-40 animate-fade-in"
+          className="absolute inset-0 bg-[#0B0F1A]/95 backdrop-blur-sm p-2 flex flex-col justify-between items-center z-20 animate-fade-in"
           onClick={e => e.stopPropagation()}
         >
-          {/* Card Title */}
-          <div className="text-center px-1">
-            <span className="font-['Cinzel'] font-bold text-amber-200 text-xs block leading-tight">
+          <div className="text-center mt-1">
+            <span className="font-['Cinzel'] font-bold text-xs text-amber-200 block truncate">
               {card.name}
             </span>
-            <span className="text-[10px] text-slate-300 font-medium">
+            <span className="text-[10px] text-slate-400">
               +{card.prestigePoints} VP • +1 {gemColor.name}
             </span>
           </div>
 
-          {/* Action Buttons: BUY and RESERVE tablets */}
-          <div className="flex flex-col gap-1.5 w-full mt-1">
+          <div className="flex flex-col gap-1.5 w-full">
             <button
               type="button"
               onClick={onBuy}
               disabled={!canAfford}
-              className={`w-full py-1.5 px-2 rounded-lg font-['Cinzel'] font-bold text-xs tracking-wider uppercase shadow-xl transition-all flex items-center justify-center gap-1 ${
+              className={`w-full py-1.5 rounded-xl font-['Cinzel'] font-bold text-xs transition-all flex items-center justify-center gap-1 ${
                 canAfford
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white cursor-pointer active:scale-95 shadow-emerald-950/80 ring-2 ring-emerald-300'
-                  : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+                  ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_0_15px_rgba(16,185,129,0.4)] cursor-pointer active:scale-95'
+                  : 'bg-white/5 text-slate-500 cursor-not-allowed border border-white/5'
               }`}
             >
-              <span>BUY</span>
+              <span>Buy Card</span>
               {affordability && affordability.goldNeeded > 0 && (
-                <span className="text-[10px] text-amber-300">({affordability.goldNeeded} gold)</span>
+                <span className="text-[10px] text-amber-900 font-sans">({affordability.goldNeeded} gold)</span>
               )}
             </button>
 
-            {!isReservedCard && (
+            {!isReservedCard && onReserve && (
               isConfirmingReserve ? (
-                <div className="flex items-center gap-1 w-full animate-fade-in">
+                <div className="flex items-center gap-1 w-full">
                   <button
                     type="button"
-                    onClick={e => {
-                      e.stopPropagation();
+                    onClick={() => {
                       setIsConfirmingReserve(false);
-                      onReserve && onReserve();
+                      onReserve();
                     }}
-                    className="flex-1 py-1.5 px-2 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-['Cinzel'] font-black text-[11px] tracking-wider uppercase shadow-xl transition-all flex items-center justify-center gap-1 cursor-pointer active:scale-95 ring-2 ring-amber-300"
-                    title="Confirm reserving this card into your private hand"
-                    aria-label={`Confirm reserve ${card.name}`}
+                    className="flex-1 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-['Cinzel'] font-bold text-[11px] flex items-center justify-center gap-1 cursor-pointer active:scale-95"
                   >
-                    <Check size={13} className="text-slate-950 stroke-[3]" />
-                    <span>CONFIRM?</span>
+                    <Check size={12} />
+                    <span>Confirm</span>
                   </button>
                   <button
                     type="button"
-                    onClick={e => {
-                      e.stopPropagation();
-                      setIsConfirmingReserve(false);
-                    }}
-                    className="py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-['Cinzel'] text-xs flex items-center justify-center shadow transition-all cursor-pointer"
-                    title="Cancel"
-                    aria-label="Cancel reserve"
+                    onClick={() => setIsConfirmingReserve(false)}
+                    className="p-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-300 cursor-pointer"
                   >
-                    <X size={13} />
+                    <X size={12} />
                   </button>
                 </div>
               ) : (
                 <button
                   type="button"
-                  onClick={e => {
-                    e.stopPropagation();
-                    setIsConfirmingReserve(true);
-                  }}
+                  onClick={() => setIsConfirmingReserve(true)}
                   disabled={!canReserve}
-                  className={`w-full py-1.5 px-2 rounded-lg font-['Cinzel'] font-bold text-xs tracking-wider uppercase shadow-xl transition-all flex items-center justify-center gap-1 ${
+                  className={`w-full py-1.5 rounded-xl font-['Cinzel'] font-bold text-xs transition-all flex items-center justify-center gap-1 ${
                     canReserve
-                      ? 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-amber-100 cursor-pointer active:scale-95 shadow-amber-950/80 ring-2 ring-amber-400'
-                      : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+                      ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 cursor-pointer active:scale-95'
+                      : 'bg-white/5 text-slate-600 border border-white/5 cursor-not-allowed'
                   }`}
                 >
-                  <span>RESERVE</span>
-                  <span className="text-[10px] text-amber-300">(+1 Gold)</span>
+                  <span>Reserve</span>
+                  <span className="text-[10px] text-amber-400 font-sans">(+1 Gold)</span>
                 </button>
               )
             )}

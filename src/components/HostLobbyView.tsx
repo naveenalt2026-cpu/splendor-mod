@@ -31,22 +31,22 @@ export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-radial from-slate-900 via-slate-950 to-black text-slate-100 flex flex-col items-center justify-between p-4 sm:p-6 lg:p-8 relative overflow-hidden select-none">
-      {/* Background Renaissance ambient glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-radial from-amber-500/15 via-yellow-600/5 to-transparent blur-3xl pointer-events-none" />
+    <div className="min-h-screen bg-[#0B0F1A] text-slate-100 flex flex-col items-center justify-between p-4 sm:p-6 lg:p-8 relative overflow-hidden select-none font-sans">
+      {/* Background ambient glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-radial from-amber-500/10 via-amber-500/5 to-transparent blur-3xl pointer-events-none" />
 
       {/* Top Header */}
-      <header className="w-full max-w-5xl flex items-center justify-between border-b border-amber-500/20 pb-4 z-10">
+      <header className="w-full max-w-5xl flex items-center justify-between border-b border-white/8 pb-4 z-10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center text-slate-950 shadow-[0_0_15px_rgba(251,191,36,0.5)]">
-            <Tv size={22} className="stroke-[2.5]" />
+          <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.25)]">
+            <Tv size={20} className="stroke-[2.5]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="font-['Cinzel'] font-black text-xl sm:text-2xl text-amber-200 tracking-wider">
                 SPLENDOR: MASTER TABLE HOST
               </h1>
-              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-950/80 border border-amber-400 text-amber-300">
+              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-400 text-amber-300">
                 <Shield size={10} /> Central Board Only
               </span>
             </div>
@@ -59,7 +59,7 @@ export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
         <button
           type="button"
           onClick={onExitHost}
-          className="text-xs font-['Cinzel'] text-slate-400 hover:text-amber-300 px-3 py-1.5 rounded-lg border border-slate-800 hover:border-amber-500/40 transition-colors cursor-pointer"
+          className="text-xs font-['Cinzel'] text-slate-400 hover:text-amber-300 px-3 py-1.5 rounded-xl border border-white/10 hover:border-amber-500/40 transition-colors cursor-pointer"
         >
           Exit to Menu
         </button>
@@ -68,14 +68,14 @@ export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
       {/* Main Center Area: Large QR Code + Room Code + Live Player Slots */}
       <main className="w-full max-w-5xl flex-1 flex flex-col lg:flex-row items-center justify-center gap-8 my-6 z-10">
         {/* Left Column: Huge QR Code Card */}
-        <div className="flex flex-col items-center bg-gradient-to-b from-slate-900/90 via-slate-950 to-slate-900/95 border-2 border-amber-400/70 p-6 sm:p-8 rounded-3xl shadow-[0_0_40px_rgba(251,191,36,0.3)] text-center max-w-md w-full">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-950/90 border border-amber-500/50 text-amber-300 text-xs font-['Cinzel'] font-bold mb-4">
+        <div className="flex flex-col items-center bg-[#121826] border border-white/8 p-6 sm:p-8 rounded-3xl shadow-xl text-center max-w-md w-full">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-['Cinzel'] font-bold mb-4">
             <Sparkles size={14} className="text-amber-400" />
             <span>SCAN WITH MOBILE CAMERA TO JOIN</span>
           </div>
 
           {/* Large High-Contrast QR Code */}
-          <div className="p-4 bg-slate-950 rounded-2xl border-2 border-amber-400/80 shadow-2xl relative group">
+          <div className="p-4 bg-[#0B0F1A] rounded-2xl border border-white/10 shadow-xl relative group">
             <QRCodeSVG
               value={joinUrl}
               size={230}
@@ -153,15 +153,15 @@ export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
                     key={slotIndex}
                     className={`p-3.5 rounded-2xl border transition-all flex items-center gap-3 ${
                       player
-                        ? 'bg-gradient-to-r from-amber-950/60 via-slate-900 to-slate-900 border-amber-400/70 shadow-lg shadow-amber-950/40 ring-1 ring-amber-400/40'
-                        : 'bg-slate-950/40 border-dashed border-slate-800 text-slate-600'
+                        ? 'bg-[#121826] border-amber-400/60 shadow-lg ring-1 ring-amber-400/30'
+                        : 'bg-[#121826]/40 border-dashed border-white/10 text-slate-600'
                     }`}
                   >
                     <div
                       className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl border ${
                         player
-                          ? 'bg-slate-900 border-amber-400 shadow'
-                          : 'bg-slate-950 border-slate-800 text-slate-700'
+                          ? 'bg-[#0B0F1A] border-amber-400/50 shadow'
+                          : 'bg-[#0B0F1A] border-white/5 text-slate-700'
                       }`}
                     >
                       {player ? player.avatar : slotIndex + 1}
@@ -170,10 +170,10 @@ export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
                     <div className="flex-1 min-w-0">
                       {player ? (
                         <>
-                          <div className="font-['Cinzel'] font-bold text-amber-200 text-sm truncate flex items-center gap-1.5">
+                          <div className="font-['Cinzel'] font-bold text-slate-100 text-sm truncate flex items-center gap-1.5">
                             <span>{player.name}</span>
                             {player.isAI && (
-                              <span className="text-[9px] bg-slate-800 text-slate-400 px-1 rounded">
+                              <span className="text-[9px] bg-white/10 text-slate-300 px-1 rounded">
                                 AI
                               </span>
                             )}
@@ -185,11 +185,11 @@ export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
                         </>
                       ) : (
                         <>
-                          <div className="text-xs text-slate-500 font-['Cinzel']">
+                          <div className="text-xs text-slate-400 font-['Cinzel']">
                             Slot {slotIndex + 1} Open
                           </div>
-                          <div className="text-[10px] text-slate-600">
-                            Scan QR code to take slot
+                          <div className="text-[10px] text-slate-500">
+                            Scan QR code to join
                           </div>
                         </>
                       )}
@@ -201,15 +201,15 @@ export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
           </div>
 
           {/* Action / Launch Bar */}
-          <div className="mt-8 pt-4 border-t border-slate-800/80 flex flex-col gap-3">
+          <div className="mt-8 pt-4 border-t border-white/8 flex flex-col gap-3">
             <button
               type="button"
               disabled={!canStart}
               onClick={onStartGame}
               className={`w-full py-4 px-6 rounded-2xl font-['Cinzel'] font-black text-lg tracking-wider uppercase flex items-center justify-center gap-2 shadow-2xl transition-all ${
                 canStart
-                  ? 'bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 ring-4 ring-amber-400/50 shadow-amber-500/50 cursor-pointer active:scale-95 animate-pulse'
-                  : 'bg-slate-900 text-slate-600 border border-slate-800 cursor-not-allowed opacity-60'
+                  ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 ring-4 ring-amber-400/30 shadow-[0_0_25px_rgba(245,158,11,0.4)] cursor-pointer active:scale-95'
+                  : 'bg-white/5 text-slate-600 border border-white/5 cursor-not-allowed opacity-60'
               }`}
             >
               <span>START MULTIPLAYER MATCH</span>
@@ -218,7 +218,7 @@ export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
 
             <div className="text-center text-xs text-slate-400">
               {canStart
-                ? 'All set! Press Start Match to launch the full tabletop board on this screen.'
+                ? 'All set! Press Start Match to launch the shared Table View.'
                 : `Need ${Math.max(0, 2 - players.length)} more player(s) to commence.`}
             </div>
           </div>

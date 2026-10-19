@@ -4,7 +4,7 @@ import { ALL_GEMS, ALL_TOKENS, GEM_COLORS } from '../game/constants.ts';
 import { GemIcon } from './GemIcon.tsx';
 import { DevelopmentCardView } from './DevelopmentCardView.tsx';
 import { calculateBonuses, canTakeTokens, checkCardAffordability } from '../game/rules.ts';
-import { GemType, TokenType } from '../types/game.ts';
+import { DevelopmentCard, GemType, TokenType } from '../types/game.ts';
 import {
   Crown,
   Sparkles,
@@ -18,6 +18,9 @@ import {
   AlertCircle,
   Shield,
   Layers,
+  ArrowLeft,
+  ChevronRight,
+  Info,
 } from 'lucide-react';
 import { sound } from '../game/sound.ts';
 import { DiscardTokensModal } from './DiscardTokensModal.tsx';
@@ -40,14 +43,14 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
   onSendAction,
   errorMessage,
 }) => {
-  // Navigation view: 'personal' (My hand & actions) vs 'table' (Shared board)
+  // Navigation tabs: 'personal' (My Hand) vs 'table' (Board)
   const [activeTab, setActiveTab] = useState<'personal' | 'table'>('personal');
   // Staged action mode
-  const [actionMode, setActionMode] = useState<'none' | 'take_gems' | 'buy_market' | 'reserve'>('none');
+  const [actionMode, setActionMode] = useState<'none' | 'take_gems' | 'reserve'>('none');
   // Staged gems for token collection
   const [stagedGems, setStagedGems] = useState<GemType[]>([]);
-  // Selected card id on market table
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  // Detail sheet card selection
+  const [inspectingCard, setInspectingCard] = useState<DevelopmentCard | null>(null);
 
   const myPlayer = publicState.players[myPlayerIndex] || publicState.players.find(p => p.id === myPlayerId);
   const isMyTurn = publicState.activePlayerIndex === myPlayerIndex && publicState.status !== 'game_over';
@@ -57,17 +60,15 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
   const totalTokens = myPlayer ? Object.values(myPlayer.tokens).reduce((acc, c) => acc + c, 0) : 0;
   const reservedCards = privateState?.reservedCards || [];
 
-  // Toggle staged gem
+  // Toggle staged gem for collection
   const handleToggleGem = (gem: GemType) => {
     sound.playTokenPickup();
     setStagedGems(prev => {
-      // If 1 of this gem already staged:
       if (prev.includes(gem)) {
         if (prev.filter(g => g === gem).length === 1 && prev.length === 1) {
           // Double up on same gem (valid if bank has >= 4)
           return [gem, gem];
         }
-        // Otherwise remove
         return prev.filter(g => g !== gem);
       }
       if (prev.length >= 3) return prev;
@@ -89,7 +90,7 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
   const handleBuyCard = (cardId: string, fromReserved = false) => {
     sound.playBuyCard();
     onSendAction({ type: 'buy_card', cardId, fromReserved });
-    setSelectedCardId(null);
+    setInspectingCard(null);
     setActionMode('none');
   };
 
@@ -97,7 +98,7 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
   const handleReserveCard = (cardId: string) => {
     sound.playTokenPickup();
     onSendAction({ type: 'reserve_card', cardId });
-    setSelectedCardId(null);
+    setInspectingCard(null);
     setActionMode('none');
   };
 
@@ -110,221 +111,219 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
 
   const gemValidation = canTakeTokens(stagedGems, publicState.bank);
 
+  // Calculate affordability for inspected card
+  const inspectedAffordability = inspectingCard && myPlayer
+    ? checkCardAffordability(inspectingCard, myPlayer.tokens, bonuses)
+    : null;
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between select-none relative overflow-x-hidden font-sans pb-16">
-      {/* Top Header: Player profile & View toggle */}
-      <header className="sticky top-0 z-40 bg-slate-900/95 border-b border-amber-500/30 px-3 py-2.5 backdrop-blur-md shadow-md">
+    <div className="min-h-screen bg-[#0B0F1A] text-slate-100 flex flex-col justify-between select-none relative overflow-x-hidden font-sans pb-20">
+      {/* Top Header: Player Profile & Room Info */}
+      <header className="sticky top-0 z-40 bg-[#121826]/95 border-b border-white/8 px-4 py-3 backdrop-blur-md shadow-md">
         <div className="max-w-md mx-auto flex items-center justify-between gap-2">
-          {/* My Player Info */}
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">{myPlayer?.avatar || '👑'}</span>
+          {/* Player avatar & name */}
+          <div className="flex items-center gap-2.5">
+            <span className="text-2xl filter drop-shadow">{myPlayer?.avatar || '👑'}</span>
             <div>
-              <div className="font-['Cinzel'] font-bold text-sm text-amber-200 flex items-center gap-1.5">
+              <div className="font-['Cinzel'] font-bold text-sm text-slate-100 flex items-center gap-1.5">
                 <span>{myPlayer?.name || 'You'}</span>
                 <span className="w-2 h-2 rounded-full bg-emerald-400" title="Connected" />
               </div>
-              <div className="text-[10px] text-slate-400">
-                Room: {publicState.sessionId}
+              <div className="text-[10px] font-mono text-slate-400">
+                Room: <span className="text-amber-300 font-bold">{publicState.sessionId}</span>
               </div>
             </div>
           </div>
 
-          {/* Prestige Points Progress Badge */}
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-950/90 border border-amber-400 shadow">
+          {/* VP Score Badge */}
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 shadow-sm">
             <Crown size={14} className="text-amber-400" />
-            <span className="font-['Cinzel'] font-black text-amber-200 text-sm">
+            <span className="font-['Cinzel'] font-black text-amber-300 text-sm">
               {myPlayer?.prestigePoints || 0}
             </span>
-            <span className="text-[10px] text-amber-400/70">/ {publicState.targetVP} VP</span>
+            <span className="text-[10px] text-amber-400/70 font-medium">/ {publicState.targetVP} VP</span>
           </div>
         </div>
 
-        {/* View Mode Toggle: [My Hand & Actions] ↔ [Shared Table View] */}
-        <div className="max-w-md mx-auto mt-2 grid grid-cols-2 gap-1 p-0.5 rounded-xl bg-slate-950 border border-slate-800">
+        {/* Two Clear Top Tabs: [My Hand] | [Board] */}
+        <div className="max-w-md mx-auto mt-3 grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-[#0B0F1A] border border-white/8">
           <button
             type="button"
             onClick={() => setActiveTab('personal')}
-            className={`py-1.5 px-2 rounded-lg font-['Cinzel'] font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            className={`py-2 px-3 rounded-xl font-['Cinzel'] font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
               activeTab === 'personal'
-                ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow'
+                ? 'bg-amber-400 text-slate-950 shadow-md scale-[1.01]'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Smartphone size={14} />
-            <span>My Hand & Actions</span>
+            <Smartphone size={15} />
+            <span>My Hand</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('table')}
-            className={`py-1.5 px-2 rounded-lg font-['Cinzel'] font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+            className={`py-2 px-3 rounded-xl font-['Cinzel'] font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
               activeTab === 'table'
-                ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow'
+                ? 'bg-amber-400 text-slate-950 shadow-md scale-[1.01]'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Tv size={14} />
-            <span>Shared Board View</span>
+            <Tv size={15} />
+            <span>Board</span>
           </button>
         </div>
 
-        {/* Dynamic Turn Banner */}
-        <div className="max-w-md mx-auto mt-2">
+        {/* Turn Status Banner */}
+        <div className="max-w-md mx-auto mt-2.5">
           {isMyTurn ? (
-            <div className="py-1.5 px-3 rounded-xl bg-gradient-to-r from-emerald-950 via-teal-900 to-emerald-950 border-2 border-emerald-400 text-emerald-200 text-xs font-['Cinzel'] font-black tracking-wider uppercase flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.5)] animate-pulse">
-              <Sparkles size={14} className="text-emerald-400" />
-              <span>IT IS YOUR TURN! CHOOSE AN ACTION</span>
+            <div className="py-2 px-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-emerald-500/20 border border-emerald-400/60 text-emerald-300 text-xs font-['Cinzel'] font-bold tracking-wider uppercase flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.25)]">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+              <span>Your Turn – Choose an Action</span>
             </div>
           ) : (
-            <div className="py-1.5 px-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 text-xs text-center font-['Cinzel'] flex items-center justify-center gap-1.5">
+            <div className="py-2 px-3 rounded-2xl bg-[#0B0F1A]/80 border border-white/5 text-slate-400 text-xs text-center font-['Cinzel'] flex items-center justify-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-slate-600" />
               <span>Waiting for {activePlayer?.name || 'opponent'} ({activePlayer?.avatar})</span>
             </div>
           )}
         </div>
 
-        {/* Error message alert toast */}
+        {/* Error message toast */}
         {errorMessage && (
-          <div className="max-w-md mx-auto mt-2 p-2 rounded-xl bg-red-950/90 border border-red-500 text-red-200 text-xs flex items-center gap-1.5 animate-bounce">
-            <AlertCircle size={14} className="text-red-400 shrink-0" />
+          <div className="max-w-md mx-auto mt-2 p-2.5 rounded-xl bg-red-950/90 border border-red-500/60 text-red-200 text-xs flex items-center gap-2 animate-bounce">
+            <AlertCircle size={15} className="text-red-400 shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
       </header>
 
-      {/* Main Tab View Content */}
-      <main className="max-w-md mx-auto w-full p-3 flex-1 flex flex-col gap-4">
+      {/* Main Tab Content */}
+      <main className="max-w-md mx-auto w-full p-4 flex-1 flex flex-col gap-4">
         {activeTab === 'personal' ? (
           <>
-            {/* Quick Turn Actions Accordion (when my turn) */}
+            {/* Primary Action Buttons (Take Gems • Buy Card • Reserve) */}
             {isMyTurn && (
-              <section className="p-3 rounded-2xl bg-gradient-to-b from-amber-950/70 via-slate-900 to-slate-900 border-2 border-amber-400 shadow-xl">
-                <div className="font-['Cinzel'] font-black text-xs text-amber-200 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <section className="p-3.5 rounded-2xl bg-[#121826] border border-amber-500/30 shadow-lg">
+                <div className="text-[11px] font-['Cinzel'] font-bold text-amber-200 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
                   <Sparkles size={14} className="text-amber-400" />
-                  <span>Available Turn Actions</span>
+                  <span>Your Turn Actions</span>
                 </div>
 
-                {/* 3 Action Buttons */}
-                <div className="grid grid-cols-3 gap-1.5 mb-2">
+                <div className="grid grid-cols-3 gap-2">
+                  {/* Action 1: Take Gems */}
                   <button
                     type="button"
                     onClick={() => setActionMode(actionMode === 'take_gems' ? 'none' : 'take_gems')}
-                    className={`py-2 px-1.5 rounded-xl font-['Cinzel'] font-bold text-[11px] flex flex-col items-center justify-center gap-1 border transition-all cursor-pointer ${
+                    className={`py-2.5 px-2 rounded-xl font-['Cinzel'] font-bold text-xs flex flex-col items-center justify-center gap-1.5 border transition-all cursor-pointer ${
                       actionMode === 'take_gems'
-                        ? 'bg-amber-400 text-slate-950 border-amber-300 ring-2 ring-amber-300'
-                        : 'bg-slate-900 border-slate-700 text-slate-200 hover:border-amber-400'
+                        ? 'bg-amber-400 text-slate-950 border-amber-300 ring-2 ring-amber-300 shadow-md'
+                        : 'bg-[#0B0F1A] border-white/10 text-slate-200 hover:border-amber-400/50'
                     }`}
                   >
-                    <Coins size={16} />
+                    <Coins size={18} />
                     <span>Take Gems</span>
                   </button>
 
+                  {/* Action 2: Buy Card (switches to board) */}
                   <button
                     type="button"
                     onClick={() => setActiveTab('table')}
-                    className="py-2 px-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 hover:border-amber-400 font-['Cinzel'] font-bold text-[11px] flex flex-col items-center justify-center gap-1 transition-all cursor-pointer"
+                    className="py-2.5 px-2 rounded-xl bg-[#0B0F1A] border border-white/10 text-slate-200 hover:border-amber-400/50 font-['Cinzel'] font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer"
                   >
-                    <ShoppingBag size={16} />
+                    <ShoppingBag size={18} />
                     <span>Buy Card</span>
                   </button>
 
+                  {/* Action 3: Reserve Card / Deck */}
                   <button
                     type="button"
                     onClick={() => setActionMode(actionMode === 'reserve' ? 'none' : 'reserve')}
                     disabled={reservedCards.length >= 3}
-                    className={`py-2 px-1.5 rounded-xl font-['Cinzel'] font-bold text-[11px] flex flex-col items-center justify-center gap-1 border transition-all cursor-pointer ${
+                    className={`py-2.5 px-2 rounded-xl font-['Cinzel'] font-bold text-xs flex flex-col items-center justify-center gap-1.5 border transition-all cursor-pointer ${
                       actionMode === 'reserve'
-                        ? 'bg-amber-400 text-slate-950 border-amber-300 ring-2 ring-amber-300'
+                        ? 'bg-amber-400 text-slate-950 border-amber-300 ring-2 ring-amber-300 shadow-md'
                         : reservedCards.length >= 3
-                        ? 'bg-slate-950 border-slate-800 text-slate-600 cursor-not-allowed'
-                        : 'bg-slate-900 border-slate-700 text-slate-200 hover:border-amber-400'
+                        ? 'bg-white/5 border-white/5 text-slate-600 cursor-not-allowed'
+                        : 'bg-[#0B0F1A] border-white/10 text-slate-200 hover:border-amber-400/50'
                     }`}
                   >
-                    <BookmarkPlus size={16} />
-                    <span>Reserve Deck</span>
+                    <BookmarkPlus size={18} />
+                    <span>Reserve</span>
                   </button>
                 </div>
 
-                {/* Action drawer: Take Gems Interactive Drawer */}
+                {/* Drawer: Take Gems Interactive Selector */}
                 {actionMode === 'take_gems' && (
-                  <div className="p-3 rounded-xl bg-slate-950 border border-amber-500/40 animate-fade-in">
-                    <div className="text-[11px] text-slate-300 mb-2 font-medium">
-                      Select 3 different gems, or 2 identical gems (requires ≥4 in bank):
+                  <div className="mt-3 p-3 rounded-2xl bg-[#0B0F1A] border border-amber-500/30 animate-fade-in">
+                    <div className="text-[11px] text-slate-300 mb-2.5 font-medium">
+                      Select 3 different gems or 2 identical gems (requires ≥4 in bank):
                     </div>
 
                     <div className="grid grid-cols-5 gap-2 mb-3">
                       {ALL_GEMS.map(gem => {
                         const bankCount = publicState.bank[gem] || 0;
                         const countStaged = stagedGems.filter(g => g === gem).length;
+                        const isStaged = countStaged > 0;
+
                         return (
                           <button
                             key={gem}
                             type="button"
-                            disabled={bankCount === 0}
                             onClick={() => handleToggleGem(gem)}
-                            className={`p-1.5 rounded-xl border flex flex-col items-center gap-1 transition-transform cursor-pointer active:scale-95 ${
-                              countStaged > 0
-                                ? 'bg-amber-950 border-amber-400 ring-2 ring-amber-400 scale-105'
-                                : bankCount === 0
-                                ? 'opacity-30 cursor-not-allowed bg-slate-900 border-slate-800'
-                                : 'bg-slate-900 border-slate-700 hover:border-amber-400'
-                            }`}
+                            disabled={bankCount === 0 && countStaged === 0}
+                            className={`p-2 rounded-xl flex flex-col items-center justify-center border transition-all relative ${
+                              isStaged
+                                ? 'bg-amber-500/20 border-amber-400 ring-2 ring-amber-400'
+                                : 'bg-[#121826] border-white/10 hover:border-white/20'
+                            } ${bankCount === 0 && countStaged === 0 ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer active:scale-95'}`}
                           >
-                            <GemIcon type={gem} size="sm" variant="gem" />
-                            <span className="text-[10px] text-slate-300 font-bold">{bankCount}</span>
+                            <GemIcon type={gem} size="md" variant="gem" />
+                            <span className="text-[10px] font-mono text-slate-400 mt-1">
+                              ({bankCount})
+                            </span>
                             {countStaged > 0 && (
-                              <span className="text-[9px] bg-amber-400 text-slate-950 font-black px-1 rounded-full">
-                                +{countStaged}
-                              </span>
+                              <div className="absolute -top-1 -right-1 bg-amber-400 text-slate-950 font-black text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                                {countStaged}
+                              </div>
                             )}
                           </button>
                         );
                       })}
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        disabled={!gemValidation.valid}
-                        onClick={handleConfirmTakeGems}
-                        className={`flex-1 py-2 px-3 rounded-xl font-['Cinzel'] font-black text-xs uppercase flex items-center justify-center gap-1.5 shadow transition-all ${
-                          gemValidation.valid
-                            ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 ring-2 ring-emerald-300 cursor-pointer active:scale-95'
-                            : 'bg-slate-900 text-slate-600 border border-slate-800 cursor-not-allowed'
-                        }`}
-                      >
-                        <Check size={14} className="stroke-[3]" />
-                        <span>Confirm Take ({stagedGems.length} Gems)</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setStagedGems([]);
-                          setActionMode('none');
-                        }}
-                        className="p-2 rounded-xl bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={handleConfirmTakeGems}
+                      disabled={!gemValidation.valid}
+                      className={`w-full py-2 px-3 rounded-xl font-['Cinzel'] font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                        gemValidation.valid
+                          ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_0_15px_rgba(16,185,129,0.3)] cursor-pointer active:scale-95'
+                          : 'bg-white/5 text-slate-500 border border-white/5 cursor-not-allowed'
+                      }`}
+                    >
+                      <Check size={14} />
+                      <span>Confirm Collection ({stagedGems.length} gems)</span>
+                    </button>
                   </div>
                 )}
 
-                {/* Action drawer: Reserve Deck */}
+                {/* Drawer: Reserve Deck Options */}
                 {actionMode === 'reserve' && (
-                  <div className="p-3 rounded-xl bg-slate-950 border border-amber-500/40 animate-fade-in">
-                    <div className="text-[11px] text-slate-300 mb-2 font-medium">
-                      Blind reserve from tier deck (+1 Gold coin wildcard):
+                  <div className="mt-3 p-3 rounded-2xl bg-[#0B0F1A] border border-amber-500/30 animate-fade-in">
+                    <div className="text-[11px] text-slate-300 mb-2.5 font-medium">
+                      Blind reserve top card from a tier deck (+1 Gold token):
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       {([3, 2, 1] as const).map(tier => (
                         <button
                           key={tier}
                           type="button"
-                          disabled={publicState.decks[tier] === 0}
                           onClick={() => handleReserveDeck(tier)}
-                          className="py-2 px-2 rounded-xl bg-slate-900 hover:bg-amber-950 border border-slate-700 hover:border-amber-400 text-amber-200 font-['Cinzel'] font-bold text-xs flex flex-col items-center gap-1 cursor-pointer"
+                          disabled={publicState.decks[tier] === 0}
+                          className="py-2 px-1 rounded-xl bg-[#121826] border border-white/10 hover:border-amber-400/50 text-slate-200 font-['Cinzel'] font-bold text-xs flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95"
                         >
-                          <span>Tier {tier} Deck</span>
-                          <span className="text-[10px] text-amber-400">
+                          <span>Tier {tier}</span>
+                          <span className="text-[10px] font-mono text-slate-400">
                             {publicState.decks[tier]} cards
                           </span>
                         </button>
@@ -335,83 +334,82 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
               </section>
             )}
 
-            {/* My Tokens Pouch */}
-            <section className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-['Cinzel'] font-bold text-xs text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
+            {/* “My Tokens” Section: Large Tappable Gem Circles with Numbers Inside */}
+            <section className="p-4 rounded-2xl bg-[#121826] border border-white/8 shadow-md">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-['Cinzel'] font-bold text-xs text-amber-200 uppercase tracking-wide flex items-center gap-1.5">
                   <Coins size={14} className="text-amber-400" />
-                  <span>My Token Pouch</span>
+                  <span>My Tokens</span>
                 </span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                  totalTokens > 10 ? 'bg-red-950 border-red-500 text-red-200' : 'bg-slate-950 border-slate-800 text-slate-400'
+                <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full ${
+                  totalTokens > 8 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'text-slate-400'
                 }`}>
-                  {totalTokens} / 10 max
+                  {totalTokens} / 10 Max
                 </span>
               </div>
 
-              <div className="grid grid-cols-6 gap-1.5">
+              {/* 6 Large Gem Circles (5 Gems + Gold) */}
+              <div className="grid grid-cols-6 gap-2">
                 {ALL_TOKENS.map(token => {
                   const count = myPlayer?.tokens[token] || 0;
                   return (
                     <div
                       key={token}
-                      className="p-1.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col items-center justify-center"
+                      className="flex flex-col items-center justify-center p-2 rounded-2xl bg-[#0B0F1A] border border-white/5 shadow-xs"
                     >
-                      <GemIcon type={token} size="sm" variant={token === 'gold' ? 'token' : 'gem'} />
-                      <span className="font-['Cinzel'] font-black text-xs text-amber-200 mt-1">
+                      <GemIcon type={token} size="md" variant={token === 'gold' ? 'chip' : 'gem'} />
+                      <span className="font-mono font-black text-sm text-white mt-1.5">
                         {count}
                       </span>
                     </div>
                   );
                 })}
               </div>
-            </section>
 
-            {/* My Permanent Engine Discounts */}
-            <section className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-['Cinzel'] font-bold text-xs text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
-                  <Layers size={14} className="text-amber-400" />
-                  <span>Permanent Engine Discounts</span>
+              {/* Permanent Discounts shown as small elegant +X badges directly underneath */}
+              <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+                <span className="text-[11px] text-slate-400 font-['Cinzel'] font-bold flex items-center gap-1">
+                  <Layers size={13} className="text-amber-400" />
+                  <span>Permanent Discounts:</span>
                 </span>
-                <span className="text-[10px] text-slate-400">
-                  {myPlayer?.cards.length || 0} cards owned
-                </span>
-              </div>
-
-              <div className="grid grid-cols-5 gap-1.5">
-                {ALL_GEMS.map(gem => (
-                  <div
-                    key={gem}
-                    className="p-1.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-col items-center justify-center"
-                  >
-                    <GemIcon type={gem} size="sm" variant="gem" />
-                    <span className="font-['Cinzel'] font-black text-xs text-amber-300 mt-1">
-                      +{bonuses[gem] || 0}
-                    </span>
-                  </div>
-                ))}
+                <div className="flex items-center gap-2">
+                  {ALL_GEMS.map(gem => (
+                    <div
+                      key={gem}
+                      className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-[#0B0F1A] border border-white/10"
+                      title={`${gem} bonus: +${bonuses[gem]}`}
+                    >
+                      <GemIcon type={gem} size="xs" variant="gem" />
+                      <span className="font-mono font-bold text-[10px] text-amber-300">
+                        +{bonuses[gem] || 0}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
 
-            {/* My Secret Reserved Cards (Hand) */}
-            <section className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-['Cinzel'] font-bold text-xs text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
+            {/* “Reserved Cards” Area (Private Hand) */}
+            <section className="p-4 rounded-2xl bg-[#121826] border border-white/8 shadow-md">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-['Cinzel'] font-bold text-xs text-amber-200 uppercase tracking-wide flex items-center gap-1.5">
                   <BookmarkPlus size={14} className="text-amber-400" />
-                  <span>My Reserved Cards (Private Hand)</span>
+                  <span>Reserved Cards (Hand)</span>
                 </span>
-                <span className="text-[10px] text-slate-400">
-                  {reservedCards.length} / 3 cards
+                <span className="text-xs font-mono text-slate-400">
+                  {reservedCards.length} / 3
                 </span>
               </div>
 
               {reservedCards.length === 0 ? (
-                <div className="p-4 rounded-xl border border-dashed border-slate-800 text-center text-xs text-slate-500 font-['Cinzel']">
-                  No cards reserved yet. Blind reserve from decks or market cards on your turn.
+                <div className="p-6 rounded-2xl border border-dashed border-white/10 text-center text-xs text-slate-500 font-['Cinzel'] flex flex-col items-center gap-1.5">
+                  <span>No reserved cards yet.</span>
+                  <span className="text-[10px] text-slate-600 font-sans">
+                    Reserve cards on the Board to hold them and collect +1 gold wildcard.
+                  </span>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {reservedCards.map(card => {
                     const affordability = checkCardAffordability(
                       card,
@@ -433,9 +431,9 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
                           <button
                             type="button"
                             onClick={() => handleBuyCard(card.id, true)}
-                            className="mt-1 w-full py-1.5 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-['Cinzel'] font-bold text-xs flex items-center justify-center gap-1 shadow cursor-pointer active:scale-95"
+                            className="mt-2 w-full py-1.5 px-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-['Cinzel'] font-bold text-xs flex items-center justify-center gap-1 shadow-md cursor-pointer active:scale-95"
                           >
-                            <ShoppingBag size={12} />
+                            <ShoppingBag size={13} />
                             <span>BUY NOW</span>
                           </button>
                         )}
@@ -447,32 +445,22 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
             </section>
           </>
         ) : (
-          /* Secondary View: Full Shared Board on Phone */
+          /* ========================================================= */
+          /* Board Tab (Mobile): Nobles Carousel + 3 Tiers of Cards     */
+          /* ========================================================= */
           <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-              <span className="font-['Cinzel'] font-bold text-sm text-amber-200">
-                Shared Table Market
-              </span>
-              <button
-                type="button"
-                onClick={() => setActiveTab('personal')}
-                className="text-xs font-['Cinzel'] text-amber-400 underline cursor-pointer"
-              >
-                ← Back to My Hand
-              </button>
-            </div>
-
-            {/* Noble Patrons Available */}
+            {/* Nobles Horizontal Carousel at Top */}
             {publicState.nobles.length > 0 && (
-              <div className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-['Cinzel'] font-bold text-xs text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
+              <section className="p-3.5 rounded-2xl bg-[#121826] border border-white/8 shadow-md">
+                <div className="flex items-center justify-between mb-2.5">
+                  <span className="font-['Cinzel'] font-bold text-xs text-amber-200 uppercase tracking-wide flex items-center gap-1.5">
                     <Shield size={14} className="text-amber-400" />
                     <span>Noble Patrons ({publicState.nobles.length})</span>
                   </span>
                   <span className="text-[10px] text-slate-400">+3 VP on bonus match</span>
                 </div>
-                <div className="flex gap-2.5 overflow-x-auto pb-2 items-stretch">
+
+                <div className="flex gap-2.5 overflow-x-auto pb-1 items-stretch">
                   {publicState.nobles.map(noble => (
                     <NobleTileView
                       key={noble.id}
@@ -481,44 +469,193 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
                     />
                   ))}
                 </div>
-              </div>
+              </section>
             )}
 
-            {/* 3 Tiers of Market Cards */}
-            {([3, 2, 1] as const).map(tier => (
-              <div key={tier} className="flex flex-col gap-1.5">
-                <div className="font-['Cinzel'] font-bold text-xs text-amber-300">
-                  Tier {tier} Market ({publicState.decks[tier]} cards in deck)
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {publicState.faceUpCards[tier]?.map(card => {
-                    const affordability = checkCardAffordability(
-                      card,
-                      myPlayer?.tokens || { ruby: 0, sapphire: 0, emerald: 0, diamond: 0, onyx: 0, gold: 0 },
-                      bonuses
-                    );
-                    const isSelected = selectedCardId === card.id;
+            {/* 3 Tiers of Market Cards (Tier 3 -> Tier 2 -> Tier 1) */}
+            {([3, 2, 1] as const).map(tier => {
+              const cards = publicState.faceUpCards[tier] || [];
+              const deckCount = publicState.decks[tier] || 0;
 
-                    return (
-                      <div key={card.id} className="relative flex justify-center">
-                        <DevelopmentCardView
-                          card={card}
-                          affordability={affordability}
-                          isSelected={isSelected}
-                          onSelect={() => isMyTurn && setSelectedCardId(isSelected ? null : card.id)}
-                          onBuy={() => isMyTurn && handleBuyCard(card.id, false)}
-                          onReserve={() => isMyTurn && handleReserveCard(card.id)}
-                          disabled={!isMyTurn}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+              return (
+                <section key={tier} className="p-3.5 rounded-2xl bg-[#121826] border border-white/8 shadow-md">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <span className="font-['Cinzel'] font-bold text-xs text-slate-200 flex items-center gap-1.5">
+                      <span className="px-1.5 py-0.2 rounded-md bg-white/5 border border-white/10 text-amber-300 font-mono text-[10px]">
+                        T{tier}
+                      </span>
+                      <span>Tier {tier} Market</span>
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400">
+                      Deck: {deckCount} cards
+                    </span>
+                  </div>
+
+                  {/* Horizontal scrollable row for each tier */}
+                  <div className="flex gap-2.5 overflow-x-auto pb-1 items-center">
+                    {cards.map(card => {
+                      const affordability = checkCardAffordability(
+                        card,
+                        myPlayer?.tokens || { ruby: 0, sapphire: 0, emerald: 0, diamond: 0, onyx: 0, gold: 0 },
+                        bonuses
+                      );
+
+                      return (
+                        <div
+                          key={card.id}
+                          onClick={() => setInspectingCard(card)}
+                          className="shrink-0 cursor-pointer"
+                        >
+                          <DevelopmentCardView
+                            card={card}
+                            compact
+                            affordability={affordability}
+                            isSelected={inspectingCard?.id === card.id}
+                            disabled={false}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })}
+
+            {/* Floating "Back to My Hand" Button on Board Tab */}
+            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30">
+              <button
+                type="button"
+                onClick={() => setActiveTab('personal')}
+                className="py-2.5 px-5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-['Cinzel'] font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_4px_20px_rgba(245,158,11,0.5)] cursor-pointer active:scale-95 transition-transform"
+              >
+                <ArrowLeft size={16} />
+                <span>Back to My Hand</span>
+              </button>
+            </div>
           </div>
         )}
       </main>
+
+      {/* Card Detail Sheet (Bottom Sheet / Modal when tapping card on Board) */}
+      {inspectingCard && (
+        <div
+          className="fixed inset-0 z-50 bg-[#0B0F1A]/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in"
+          onClick={() => setInspectingCard(null)}
+        >
+          <div
+            className="w-full max-w-md bg-[#121826] border-t sm:border border-white/10 rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl flex flex-col gap-4 animate-fade-in"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Sheet Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-white/8">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl filter drop-shadow">{inspectingCard.illustration}</span>
+                <div>
+                  <h3 className="font-['Cinzel'] font-bold text-base text-slate-100">
+                    {inspectingCard.name}
+                  </h3>
+                  <div className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
+                    <span>Tier {inspectingCard.tier}</span>
+                    <span>•</span>
+                    <span className="text-amber-300 font-bold">+{inspectingCard.prestigePoints} Prestige Points</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setInspectingCard(null)}
+                className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Permanent Discount Provided */}
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-[#0B0F1A] border border-white/5">
+              <span className="text-xs text-slate-300 font-medium">Permanent Engine Discount:</span>
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
+                <GemIcon type={inspectingCard.gemBonus} size="xs" variant="gem" />
+                <span className="font-['Cinzel'] font-bold text-xs text-slate-100 capitalize">
+                  +1 {inspectingCard.gemBonus}
+                </span>
+              </div>
+            </div>
+
+            {/* Cost Breakdown */}
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-['Cinzel'] font-bold text-amber-200">
+                Purchase Cost:
+              </span>
+
+              <div className="grid grid-cols-2 gap-2">
+                {(Object.entries(inspectingCard.cost) as [GemType, number][]).map(([gem, cost]) => {
+                  if (!cost || cost <= 0) return null;
+                  const discount = bonuses[gem] || 0;
+                  const playerTokens = myPlayer?.tokens[gem] || 0;
+                  const effectiveCost = Math.max(0, cost - discount);
+                  const isCovered = discount >= cost;
+
+                  return (
+                    <div
+                      key={gem}
+                      className={`p-2 rounded-xl border flex items-center justify-between text-xs ${
+                        isCovered
+                          ? 'bg-emerald-950/60 border-emerald-500/50 text-emerald-300'
+                          : effectiveCost <= playerTokens
+                          ? 'bg-[#0B0F1A] border-white/10 text-slate-200'
+                          : 'bg-[#0B0F1A] border-rose-500/30 text-rose-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <GemIcon type={gem} size="xs" variant="gem" />
+                        <span className="font-bold">{cost}</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        (Disc: +{discount} | You: {playerTokens})
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Action Buttons: BUY / RESERVE */}
+            <div className="flex gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => handleBuyCard(inspectingCard.id, false)}
+                disabled={!isMyTurn || !inspectedAffordability?.canAfford}
+                className={`flex-1 py-3 px-4 rounded-xl font-['Cinzel'] font-black text-sm flex items-center justify-center gap-2 transition-all ${
+                  isMyTurn && inspectedAffordability?.canAfford
+                    ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.4)] cursor-pointer active:scale-95'
+                    : 'bg-white/5 text-slate-500 border border-white/5 cursor-not-allowed'
+                }`}
+              >
+                <ShoppingBag size={16} />
+                <span>Buy Card</span>
+                {inspectedAffordability && inspectedAffordability.goldNeeded > 0 && (
+                  <span className="text-xs text-amber-900 font-sans">({inspectedAffordability.goldNeeded} gold)</span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleReserveCard(inspectingCard.id)}
+                disabled={!isMyTurn || reservedCards.length >= 3}
+                className={`py-3 px-4 rounded-xl font-['Cinzel'] font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                  isMyTurn && reservedCards.length < 3
+                    ? 'bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 cursor-pointer active:scale-95'
+                    : 'bg-white/5 text-slate-600 border border-white/5 cursor-not-allowed'
+                }`}
+              >
+                <BookmarkPlus size={16} />
+                <span>Reserve (+1 Gold)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Discard Tokens Modal if over 10 tokens */}
       {publicState.pendingTokenDiscard && publicState.pendingTokenDiscard.playerIndex === myPlayerIndex && myPlayer && (

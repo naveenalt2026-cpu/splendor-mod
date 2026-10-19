@@ -297,13 +297,13 @@ export default function App() {
   // -------------------------------------------------------------
   if (mode === 'choose_mode') {
     return (
-      <div className="min-h-screen bg-radial from-slate-900 via-slate-950 to-black text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 select-none relative overflow-hidden">
-        {/* Background glow */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-radial from-amber-500/20 via-yellow-600/5 to-transparent blur-3xl pointer-events-none" />
+      <div className="min-h-screen bg-[#0B0F1A] text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 select-none relative overflow-hidden font-sans">
+        {/* Soft background ambient glow */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-radial from-amber-500/10 via-amber-500/5 to-transparent blur-3xl pointer-events-none" />
 
-        <div className="w-full max-w-xl p-6 sm:p-8 rounded-3xl bg-slate-950/90 border-2 border-amber-400 shadow-[0_0_50px_rgba(251,191,36,0.3)] backdrop-blur-md flex flex-col items-center text-center relative z-10">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center text-slate-950 shadow-[0_0_25px_rgba(251,191,36,0.6)] mb-4">
-            <Crown size={36} className="stroke-[2.5]" />
+        <div className="w-full max-w-xl p-6 sm:p-8 rounded-3xl bg-[#121826] border border-white/8 shadow-2xl backdrop-blur-md flex flex-col items-center text-center relative z-10">
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.25)] mb-4">
+            <Crown size={32} className="stroke-[2.5]" />
           </div>
 
           <h1 className="font-['Cinzel'] font-black text-2xl sm:text-3xl text-amber-200 tracking-wider">
@@ -326,10 +326,10 @@ export default function App() {
                 setMode('host');
                 createHostSession(15);
               }}
-              className="w-full p-4 rounded-2xl bg-gradient-to-r from-amber-950/90 via-slate-900 to-amber-950/90 border-2 border-amber-400 hover:border-amber-300 flex items-center gap-4 transition-all hover:scale-[1.02] shadow-xl hover:shadow-[0_0_30px_rgba(251,191,36,0.4)] cursor-pointer text-left group"
+              className="w-full p-4 rounded-2xl bg-[#0B0F1A] hover:bg-[#0B0F1A]/80 border border-amber-500/40 hover:border-amber-400 flex items-center gap-4 transition-all hover:scale-[1.01] shadow-lg hover:shadow-[0_0_25px_rgba(245,158,11,0.25)] cursor-pointer text-left group"
             >
               <div className="w-12 h-12 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow">
-                <Tv size={26} className="stroke-[2.5]" />
+                <Tv size={24} className="stroke-[2.5]" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-['Cinzel'] font-black text-base text-amber-200 group-hover:text-amber-100 flex items-center gap-2">
@@ -348,10 +348,10 @@ export default function App() {
             <button
               type="button"
               onClick={() => setMode('player')}
-              className="w-full p-4 rounded-2xl bg-slate-900/80 hover:bg-slate-900 border border-slate-700 hover:border-amber-400/80 flex items-center gap-4 transition-all hover:scale-[1.01] cursor-pointer text-left group"
+              className="w-full p-4 rounded-2xl bg-[#0B0F1A] hover:bg-white/5 border border-white/8 hover:border-amber-400/50 flex items-center gap-4 transition-all hover:scale-[1.01] cursor-pointer text-left group"
             >
-              <div className="w-12 h-12 rounded-xl bg-slate-800 text-amber-300 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform border border-slate-700">
-                <Smartphone size={26} />
+              <div className="w-12 h-12 rounded-xl bg-white/5 text-amber-300 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform border border-white/10">
+                <Smartphone size={24} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-['Cinzel'] font-black text-base text-slate-200 group-hover:text-amber-200">
@@ -367,10 +367,10 @@ export default function App() {
             <button
               type="button"
               onClick={() => setMode('solo')}
-              className="w-full p-3.5 rounded-2xl bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center gap-4 transition-all cursor-pointer text-left group"
+              className="w-full p-3.5 rounded-2xl bg-[#0B0F1A]/60 hover:bg-white/5 border border-white/5 hover:border-white/15 flex items-center gap-4 transition-all cursor-pointer text-left group"
             >
-              <div className="w-12 h-12 rounded-xl bg-slate-900 text-slate-400 flex items-center justify-center shrink-0 border border-slate-800">
-                <Users size={22} />
+              <div className="w-12 h-12 rounded-xl bg-white/5 text-slate-400 flex items-center justify-center shrink-0 border border-white/5">
+                <Users size={20} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-['Cinzel'] font-bold text-sm text-slate-300 group-hover:text-amber-200">
@@ -391,7 +391,7 @@ export default function App() {
   // ROUTE 4: Solo Practice vs AI (Single Device)
   // -------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-radial from-slate-900 via-slate-950 to-black text-slate-100 flex flex-col justify-between p-2 sm:p-4 select-none relative overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-[#0B0F1A] text-slate-100 flex flex-col justify-between p-3 sm:p-4 lg:p-6 select-none relative overflow-x-hidden font-sans">
       <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-25 pointer-events-none" />
 
       {/* Top Bar HUD */}
