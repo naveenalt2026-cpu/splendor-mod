@@ -1,0 +1,6 @@
+{
+  "name": "Splendor: Renaissance Gem Masters",
+  "description": "Authentic digital tabletop adaptation of Splendor with solo vs intelligent AI opponents, rich glowing fantasy visual aesthetic, gem chip tokens, noble patrons, and strategic engine building.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
