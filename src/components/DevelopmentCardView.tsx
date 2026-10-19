@@ -59,19 +59,17 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
       tabIndex={0}
       aria-label={`${card.name}, Tier ${card.tier}, ${card.prestigePoints} Prestige Points, provides ${card.gemBonus} bonus`}
     >
-      {/* Top Header: Prestige Points on Left, Large Gem Bonus Crest on Right */}
-      <div className="flex items-center justify-between z-10">
+      {/* Top Header: Prestige Points on Left (blank if 0 VP), Large Gem Bonus Crest on Right */}
+      <div className="flex items-center justify-between z-10 w-full h-7 shrink-0">
         {card.prestigePoints > 0 ? (
-          <div className="flex items-baseline gap-0.5 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30">
+          <div className="flex items-baseline gap-0.5 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 shadow-xs">
             <span className="font-['Cinzel'] font-black text-amber-300 text-sm sm:text-base leading-none">
               {card.prestigePoints}
             </span>
             <span className="text-[9px] text-amber-400 font-bold leading-none">VP</span>
           </div>
         ) : (
-          <span className="text-[10px] font-mono text-slate-500 font-bold px-1.5 py-0.5 rounded bg-white/5">
-            T{card.tier}
-          </span>
+          <div className="w-5 h-5" />
         )}
 
         {/* Large Permanent Gem Bonus Crest (Discount Gem) */}
@@ -82,44 +80,51 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
             borderColor: `${gemColor.primary}60`,
             boxShadow: `0 0 12px ${gemColor.glow}`,
           }}
-          title={`Permanent +1 discount`}
+          title={`Permanent +1 ${card.gemBonus} discount`}
         >
           <GemIcon type={card.gemBonus} size="sm" variant="gem" />
         </div>
       </div>
 
-      {/* Center: Refined illustration & readable title (compact to make room for gems) */}
-      <div className="flex flex-col items-center justify-center my-auto py-0.5 z-10 text-center">
-        <div className="text-xl sm:text-2xl filter drop-shadow transform group-hover:scale-110 transition-transform duration-200">
-          {card.illustration}
+      {/* Card Body: Absolute Centered Artwork + Vertical Bottom-Left Costs (Classic Splendor Ergonomics) */}
+      <div className="relative flex-1 w-full flex items-end justify-between z-10 min-h-0 pt-1">
+        {/* Central Artwork: Positioned at exact geometric center, perfectly aligned across all cards */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+          <span className="text-3xl sm:text-4xl filter drop-shadow transform group-hover:scale-110 transition-transform duration-200 select-none">
+            {card.illustration}
+          </span>
         </div>
-        <div className="font-['Cinzel'] font-medium text-[10px] sm:text-[11px] text-slate-300 line-clamp-1 mt-1 px-1 leading-tight">
-          {card.name}
+
+        {/* Bottom-Left: Vertical stack of cost gems */}
+        <div className="flex flex-col-reverse gap-1 items-start z-10">
+          {(Object.entries(card.cost) as [GemType, number][]).map(([gem, cost]) => {
+            if (!cost || cost <= 0) return null;
+            const userBonus = affordability?.bonuses[gem] || 0;
+            const isCovered = userBonus >= cost;
+
+            return (
+              <div
+                key={gem}
+                className={`flex items-center gap-1 px-1.5 py-0.5 rounded-lg border shadow-xs transition-colors ${
+                  isCovered
+                    ? 'bg-emerald-950/90 border-emerald-500/80 text-emerald-300'
+                    : 'bg-[#0B0F1A]/90 border-white/12 text-white'
+                }`}
+                title={`${cost} ${gem} required`}
+              >
+                <GemIcon type={gem} size="xs" variant="gem" className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="font-mono font-black text-xs sm:text-sm leading-none">{cost}</span>
+              </div>
+            );
+          })}
         </div>
-      </div>
 
-      {/* Bottom: Cost gems with larger gem icons & bold requirement numbers */}
-      <div className="flex items-center justify-center gap-1 sm:gap-1.5 z-10 pt-1.5 border-t border-white/5 flex-wrap">
-        {(Object.entries(card.cost) as [GemType, number][]).map(([gem, cost]) => {
-          if (!cost || cost <= 0) return null;
-          const userBonus = affordability?.bonuses[gem] || 0;
-          const isCovered = userBonus >= cost;
-
-          return (
-            <div
-              key={gem}
-              className={`flex items-center gap-1 px-1.5 py-0.5 rounded-lg border shadow-xs transition-colors ${
-                isCovered
-                  ? 'bg-emerald-950/80 border-emerald-500/70 text-emerald-300'
-                  : 'bg-[#0B0F1A] border-white/10 text-white'
-              }`}
-              title={`${cost} required`}
-            >
-              <GemIcon type={gem} size="xs" variant="gem" className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="font-mono font-black text-xs sm:text-sm">{cost}</span>
-            </div>
-          );
-        })}
+        {/* Bottom-Right: Tiny low-opacity flavor title that never wraps or truncates */}
+        <div className="z-10 self-end text-right truncate max-w-[72px] pb-0.5 select-none opacity-50 hover:opacity-80 transition-opacity">
+          <span className="text-[9px] uppercase tracking-wider text-slate-400 font-semibold truncate block">
+            {card.name}
+          </span>
+        </div>
       </div>
 
       {/* Subtle green highlight when affordable */}
