@@ -29,8 +29,40 @@ class SoundEngine {
     return this.isMuted;
   }
 
+  public setMuted(muted: boolean) {
+    this.isMuted = muted;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('splendor_sound_muted', String(this.isMuted));
+    }
+  }
+
   public getMuted(): boolean {
     return this.isMuted;
+  }
+
+  public playError() {
+    if (this.isMuted) return;
+    this.initCtx();
+    if (!this.ctx) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.linearRampToValueAtTime(100, now + 0.15);
+
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.15);
+    } catch {}
   }
 
   public playTokenPickup() {

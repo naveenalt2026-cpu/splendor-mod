@@ -192,7 +192,7 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
 
         {/* Right Side: Nobles Dais */}
         <aside
-          className="relative flex lg:flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-gradient-to-b from-slate-950/90 via-slate-900/80 to-slate-950/95 border-2 border-slate-800 shadow-2xl backdrop-blur-md shrink-0 z-10 w-full lg:w-auto overflow-x-auto lg:overflow-y-auto max-h-none lg:max-h-[500px]"
+          className="relative flex lg:flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-gradient-to-b from-slate-950/90 via-slate-900/80 to-slate-950/95 border-2 border-slate-800 shadow-2xl backdrop-blur-md shrink-0 z-10 w-full lg:w-auto overflow-x-auto lg:overflow-y-auto max-h-none lg:max-h-[calc(100vh-140px)]"
           aria-label="Noble Patrons Dais"
         >
           <div className="flex lg:flex-col items-center gap-1.5 mb-2 shrink-0 pr-3 lg:pr-0 border-r lg:border-r-0 border-slate-800">

@@ -5,7 +5,7 @@ import { GEM_COLORS, TOKEN_COLORS } from '../game/constants.ts';
 interface GemIconProps {
   type: TokenType;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
-  variant?: 'gem' | 'chip' | 'disc';
+  variant?: 'gem' | 'chip' | 'disc' | 'token';
   count?: number;
   selected?: boolean;
   disabled?: boolean;
@@ -229,7 +229,7 @@ export const GemIcon: React.FC<GemIconProps> = ({
     );
   };
 
-  if (variant === 'chip') {
+  if (variant === 'chip' || variant === 'token') {
     return renderChipGraphic();
   }
 

@@ -462,6 +462,28 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
               </button>
             </div>
 
+            {/* Noble Patrons Available */}
+            {publicState.nobles.length > 0 && (
+              <div className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-['Cinzel'] font-bold text-xs text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
+                    <Shield size={14} className="text-amber-400" />
+                    <span>Noble Patrons ({publicState.nobles.length})</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400">+3 VP on bonus match</span>
+                </div>
+                <div className="flex gap-2.5 overflow-x-auto pb-2 items-stretch">
+                  {publicState.nobles.map(noble => (
+                    <NobleTileView
+                      key={noble.id}
+                      noble={noble}
+                      playerBonuses={bonuses}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* 3 Tiers of Market Cards */}
             {([3, 2, 1] as const).map(tier => (
               <div key={tier} className="flex flex-col gap-1.5">

@@ -263,7 +263,18 @@ export default function App() {
           myPlayerName={myPlayer?.name || 'Player'}
           myAvatar={myPlayer?.avatar || '👑'}
           myPlayerIndex={myPlayerIndex}
-          lobbyPlayers={lobbyPlayers.length > 0 ? lobbyPlayers : publicState.players}
+          lobbyPlayers={
+            lobbyPlayers.length > 0
+              ? lobbyPlayers
+              : publicState.players.map((p, idx) => ({
+                  id: p.id,
+                  name: p.name,
+                  avatar: p.avatar,
+                  isAI: p.isAI,
+                  connected: p.connected,
+                  playerIndex: idx,
+                }))
+          }
         />
       );
     }
@@ -385,16 +396,12 @@ export default function App() {
 
       {/* Top Bar HUD */}
       <TopHUD
-        activePlayer={activePlayer}
-        turnCount={soloState.turnCount}
-        isFinalRound={soloState.status === 'final_round'}
-        helperMessage={helperMessage}
+        state={soloState}
+        helperText={helperMessage}
         onOpenRules={() => setIsRulesOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
-        onRestartMatch={() => handleResetGame()}
         onOpenHistory={() => setIsHistoryOpen(true)}
-        humanPlayer={humanPlayer}
-        targetVP={soloState.targetVP}
+        onResetGame={() => handleResetGame()}
       />
 
       {/* Switch to Multiplayer prompt banner */}
@@ -591,7 +598,7 @@ export default function App() {
 
         {/* Right Side: Ornate Nobles Dais */}
         <aside
-          className="relative flex lg:flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-gradient-to-b from-slate-950/90 via-slate-900/80 to-slate-950/95 border-2 border-slate-800 shadow-2xl backdrop-blur-md shrink-0 z-10 w-full lg:w-auto overflow-x-auto lg:overflow-y-auto max-h-none lg:max-h-[500px]"
+          className="relative flex lg:flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-gradient-to-b from-slate-950/90 via-slate-900/80 to-slate-950/95 border-2 border-slate-800 shadow-2xl backdrop-blur-md shrink-0 z-10 w-full lg:w-auto overflow-x-auto lg:overflow-y-auto max-h-none lg:max-h-[calc(100vh-140px)]"
           aria-label="Noble Patrons Dais"
         >
           <div className="flex lg:flex-col items-center gap-1.5 mb-2 shrink-0 pr-3 lg:pr-0 border-r lg:border-r-0 border-slate-800">
