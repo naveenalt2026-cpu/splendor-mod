@@ -101,7 +101,7 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
     <div className="min-h-screen bg-[#0B0F1A] text-slate-100 flex flex-col justify-between py-2 sm:py-3 px-4 sm:px-8 md:px-12 lg:px-14 xl:px-16 select-none relative overflow-x-hidden font-sans">
       {/* Top Header: Slim, streamlined bar */}
       <header className="relative flex flex-wrap items-center justify-between gap-3 px-4 py-2 rounded-xl bg-[#121826] border border-white/8 shadow-md backdrop-blur-md z-20 max-w-[1536px] w-full mx-auto">
-        {/* Left: Branding & Room Session */}
+        {/* Left: Branding & Room Session (Target VP removed as requested) */}
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-sm">
             <Tv size={16} className="stroke-[2.5]" />
@@ -113,22 +113,58 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
             <span className="text-[10px] font-mono bg-amber-500/15 border border-amber-500/30 text-amber-300 px-2 py-0.5 rounded-full font-bold">
               {publicState.sessionId}
             </span>
-            <span className="hidden sm:inline text-[11px] text-slate-400 font-medium">
-              • Target: <b className="text-amber-300 font-mono">{publicState.targetVP}</b> VP
-            </span>
           </div>
         </div>
 
-        {/* Center: Slim Active Player Turn Capsule */}
-        <div className="flex items-center gap-2 px-3.5 py-1 rounded-full bg-gradient-to-r from-amber-500/15 via-amber-500/25 to-amber-500/15 border border-amber-400/40 shadow-sm">
-          <span className="text-lg filter drop-shadow">{activePlayer?.avatar || '👑'}</span>
-          <span className="font-['Cinzel'] font-black text-xs text-amber-300 tracking-wider">
-            {activePlayer?.name?.toUpperCase()}'S TURN
-          </span>
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-[10px] text-slate-400 font-mono">
-            {publicState.status === 'final_round' ? '⚠️ Final Round' : `R${publicState.turnCount}`}
-          </span>
+        {/* Center: Active Player Turn Capsule & Contained Gem Bank Pill */}
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap justify-center">
+          {/* Active Player Turn Capsule */}
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/15 via-amber-500/25 to-amber-500/15 border border-amber-400/40 shadow-sm shrink-0">
+            <span className="text-base filter drop-shadow">{activePlayer?.avatar || '👑'}</span>
+            <span className="font-['Cinzel'] font-black text-xs text-amber-300 tracking-wider">
+              {activePlayer?.name?.toUpperCase()}'S TURN
+            </span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[10px] text-slate-400 font-mono">
+              {publicState.status === 'final_round' ? '⚠️ Final Round' : `R${publicState.turnCount}`}
+            </span>
+          </div>
+
+          {/* Gem Bank Pill inside Header */}
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 rounded-full bg-[#0B0F1A]/90 border border-white/10 shadow-inner shrink-0">
+            <div className="flex items-center gap-1 pr-1.5 border-r border-white/10">
+              <Sparkles size={12} className="text-amber-400" />
+              <span className="font-['Cinzel'] font-bold text-[10px] uppercase tracking-wider text-amber-200 hidden md:inline">
+                BANK
+              </span>
+            </div>
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              {ALL_TOKENS.map(t => {
+                const count = publicState.bank[t] || 0;
+                return (
+                  <div
+                    key={t}
+                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md border transition-all ${
+                      count > 0
+                        ? 'bg-white/5 border-white/10 text-white'
+                        : 'bg-white/2 border-transparent text-slate-600 opacity-25'
+                    }`}
+                    title={`${t}: ${count} available in gem bank`}
+                  >
+                    <GemIcon
+                      type={t}
+                      size="xs"
+                      variant={t === 'gold' ? 'chip' : 'gem'}
+                      className="w-3.5 h-3.5"
+                    />
+                    <span className="font-mono font-bold text-xs text-slate-100">
+                      {count}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         {/* Right: Sleek mini utility controls */}
@@ -168,51 +204,11 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
         </div>
       </header>
 
-      {/* Subheader: Horizontal Gem Bank Strip - Centered */}
-      <section
-        className="w-full max-w-[1536px] mx-auto mt-2 px-4 py-2 rounded-xl bg-[#121826]/90 border border-white/8 backdrop-blur-md flex items-center justify-center gap-3 sm:gap-6 flex-wrap shadow-md z-20"
-        aria-label="Gem Bank Tokens"
-      >
-        <div className="flex items-center gap-1.5 shrink-0 pr-3 sm:pr-5 border-r border-white/10">
-          <Sparkles size={14} className="text-amber-400" />
-          <span className="font-['Cinzel'] font-black text-xs sm:text-sm uppercase tracking-wider text-amber-200">
-            GEM BANK
-          </span>
-        </div>
-
-        <div className="flex items-center justify-center gap-2 sm:gap-3 md:gap-4 flex-wrap">
-          {ALL_TOKENS.map(t => {
-            const count = publicState.bank[t] || 0;
-            return (
-              <div
-                key={t}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all ${
-                  count > 0
-                    ? 'bg-[#0B0F1A] border-white/10 text-white shadow-xs'
-                    : 'bg-white/5 border-transparent text-slate-500 opacity-25'
-                }`}
-                title={`${t}: ${count} available in gem bank`}
-              >
-                <GemIcon
-                  type={t}
-                  size="sm"
-                  variant={t === 'gold' ? 'chip' : 'gem'}
-                  className="w-4 h-4 sm:w-5 sm:h-5"
-                />
-                <span className="font-mono font-black text-xs sm:text-sm text-slate-100">
-                  {count}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
       {/* Main Playing Arena: 3 Columns (Left: Nobles Dais | Center: Cards Arena | Right: Scoreboard) */}
-      <main className="relative flex-1 max-w-[1536px] w-full mx-auto py-2 sm:py-3 flex flex-col lg:grid lg:grid-cols-[1fr_auto_1fr] items-center lg:items-start justify-center gap-4 lg:gap-6 z-10 overflow-y-auto">
-        {/* Left Column: Noble Patrons Dais (Zero scroll, sleek cameo tiles) */}
+      <main className="relative flex-1 max-w-[1536px] w-full mx-auto py-2.5 sm:py-3.5 flex flex-col lg:grid lg:grid-cols-[1fr_auto_1fr] items-center lg:items-start justify-center gap-4 lg:gap-6 z-10 overflow-y-auto">
+        {/* Left Column: Noble Patrons Dais (Decreased width, sleek cameo tiles) */}
         <aside
-          className="relative flex flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-[#121826]/90 border border-white/8 shadow-xl backdrop-blur-md shrink-0 z-10 w-full max-w-[240px] xl:max-w-[260px] justify-self-center lg:justify-self-end"
+          className="relative flex flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-[#121826]/90 border border-white/8 shadow-xl backdrop-blur-md shrink-0 z-10 w-full max-w-[170px] xl:max-w-[180px] justify-self-center lg:justify-self-end"
           aria-label="Noble Patrons Dais"
         >
           <div className="flex items-center justify-between gap-1.5 mb-2 pb-2 border-b border-white/10 w-full px-1 shrink-0">
@@ -278,9 +274,9 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
 
             return (
               <div key={tier} className="flex items-center justify-center gap-1.5 sm:gap-2 shrink-0">
-                {/* Tier Deck Card Stack */}
+                {/* Tier Deck Card Stack (Increased height to match development cards) */}
                 <div
-                  className={`relative shrink-0 rounded-2xl border ${tierStyle.border} ${tierStyle.bg} w-14 sm:w-16 md:w-18 h-42 sm:h-46 md:h-48 flex flex-col items-center justify-center select-none shadow-md`}
+                  className={`relative shrink-0 rounded-2xl border ${tierStyle.border} ${tierStyle.bg} w-14 sm:w-16 md:w-18 h-48 sm:h-52 md:h-56 lg:h-[216px] xl:h-[224px] flex flex-col items-center justify-center select-none shadow-md`}
                 >
                   <span className={`px-2 py-0.5 rounded-full border text-xs font-mono font-bold ${tierStyle.badge}`}>
                     {tierStyle.label}

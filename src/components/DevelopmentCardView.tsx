@@ -46,8 +46,8 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
       onClick={onSelect}
       className={`relative group rounded-2xl transition-all duration-200 select-none flex flex-col justify-between overflow-hidden ${
         compact
-          ? 'w-24 sm:w-28 h-36 sm:h-40 p-2'
-          : 'w-28 sm:w-30 md:w-32 lg:w-[134px] xl:w-[140px] h-42 sm:h-46 md:h-48 p-2 sm:p-2.5'
+          ? 'w-24 sm:w-28 h-40 sm:h-44 p-2'
+          : 'w-28 sm:w-30 md:w-32 lg:w-[134px] xl:w-[140px] h-48 sm:h-52 md:h-56 lg:h-[216px] xl:h-[224px] p-2.5 sm:p-3'
       } bg-[#121826] border border-white/8 shadow-md hover:shadow-xl hover:border-white/20 ${
         isSelected
           ? 'ring-2 ring-amber-400 scale-[1.03] z-30 shadow-[0_0_25px_rgba(245,158,11,0.35)]'
@@ -88,12 +88,12 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
         </div>
       </div>
 
-      {/* Center: Refined illustration & readable title (compact to make room for gems) */}
-      <div className="flex flex-col items-center justify-center my-auto py-0.5 z-10 text-center">
-        <div className="text-xl sm:text-2xl filter drop-shadow transform group-hover:scale-110 transition-transform duration-200">
+      {/* Center: Refined illustration & readable title */}
+      <div className="flex flex-col items-center justify-center my-auto py-1 z-10 text-center">
+        <div className="text-2xl sm:text-3xl filter drop-shadow transform group-hover:scale-110 transition-transform duration-200">
           {card.illustration}
         </div>
-        <div className="font-['Cinzel'] font-medium text-[10px] sm:text-[11px] text-slate-300 line-clamp-1 mt-1 px-1 leading-tight">
+        <div className="font-['Cinzel'] font-medium text-[10px] sm:text-[11px] text-slate-300 line-clamp-1 mt-1.5 px-1 leading-tight">
           {card.name}
         </div>
       </div>
