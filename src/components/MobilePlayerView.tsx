@@ -21,6 +21,7 @@ import {
   ArrowLeft,
   ChevronRight,
   Info,
+  Zap,
 } from 'lucide-react';
 import { sound } from '../game/sound.ts';
 import { DiscardTokensModal } from './DiscardTokensModal.tsx';
@@ -386,89 +387,110 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
                 </section>
               )}
 
-              {/* “My Tokens” Section: Large Tappable Gem Circles with Numbers Inside */}
+              {/* Unified Buying Power Section: Total Power = Tokens + Discounts per color */}
               <section className="p-3.5 sm:p-4 rounded-2xl bg-[#121826] border border-white/8 shadow-md">
                 <div className="flex items-center justify-between mb-2.5">
-                  <span className="font-['Cinzel'] font-bold text-xs text-amber-200 uppercase tracking-wide flex items-center gap-1.5">
-                    <Coins size={14} className="text-amber-400" />
-                    <span>My Tokens</span>
-                  </span>
-                  <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full ${
-                    totalTokens > 8 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'text-slate-400'
-                  }`}>
-                    {totalTokens} / 10 Max
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <Zap size={15} className="text-amber-400" />
+                    <span className="font-['Cinzel'] font-bold text-xs sm:text-sm text-amber-200 uppercase tracking-wide">
+                      Buying Power
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs font-mono">
+                    <span className={`px-2 py-0.5 rounded-full font-bold ${
+                      totalTokens > 8 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-[#0B0F1A] text-slate-300 border border-white/5'
+                    }`}>
+                      {totalTokens} / 10 Tokens
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-full font-bold ${
+                      totalBonuses > 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-[#0B0F1A] text-slate-400 border border-white/5'
+                    }`}>
+                      +{totalBonuses} Discounts
+                    </span>
+                  </div>
                 </div>
 
-                {/* 6 Large Gem Circles (5 Gems + Gold) */}
+                {/* 6 Unified Gem Columns (5 Gems + Gold) */}
                 <div className="grid grid-cols-6 gap-1.5 sm:gap-2">
                   {ALL_TOKENS.map(token => {
-                    const count = myPlayer?.tokens[token] || 0;
+                    const isGold = token === 'gold';
+                    const tokenCount = myPlayer?.tokens[token] || 0;
+                    const bonusCount = isGold ? 0 : (bonuses[token as GemType] || 0);
+                    const totalPower = tokenCount + bonusCount;
+                    const hasPower = totalPower > 0;
+                    const gemColor = !isGold ? GEM_COLORS[token as GemType] : null;
+
                     return (
                       <div
                         key={token}
-                        className="flex flex-col items-center justify-center p-1.5 sm:p-2 rounded-2xl bg-[#0B0F1A] border border-white/5 shadow-xs"
-                      >
-                        <GemIcon type={token} size="md" variant={token === 'gold' ? 'chip' : 'gem'} />
-                        <span className="font-mono font-black text-sm text-white mt-1">
-                          {count}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-
-              {/* “Permanent Discounts” Section: Large, Prominent & Tactile */}
-              <section className="p-3.5 sm:p-4 rounded-2xl bg-[#121826] border border-white/8 shadow-md">
-                <div className="flex items-center justify-between mb-2.5">
-                  <span className="font-['Cinzel'] font-bold text-xs text-amber-200 uppercase tracking-wide flex items-center gap-1.5">
-                    <Layers size={14} className="text-amber-400" />
-                    <span>Permanent Discounts</span>
-                  </span>
-                  <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full ${
-                    totalBonuses > 0
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm'
-                      : 'text-slate-400'
-                  }`}>
-                    +{totalBonuses} Cards Active
-                  </span>
-                </div>
-
-                {/* 5 Prominent Gem Discount Tiles */}
-                <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
-                  {ALL_GEMS.map(gem => {
-                    const count = bonuses[gem] || 0;
-                    const gemColor = GEM_COLORS[gem];
-                    const hasDiscount = count > 0;
-
-                    return (
-                      <div
-                        key={gem}
-                        className={`flex flex-col items-center justify-center p-2 rounded-2xl border transition-all ${
-                          hasDiscount
-                            ? 'shadow-md scale-[1.02]'
-                            : 'bg-[#0B0F1A]/50 border-white/5 opacity-40'
+                        className={`flex flex-col items-center justify-between p-1.5 sm:p-2 rounded-2xl border transition-all ${
+                          hasPower
+                            ? isGold
+                              ? 'bg-amber-500/15 border-amber-500/40 shadow-sm'
+                              : bonusCount > 0
+                              ? 'bg-[#151c2d] border-amber-500/30 shadow-sm'
+                              : 'bg-[#0B0F1A] border-white/10 shadow-xs'
+                            : 'bg-[#0B0F1A]/40 border-white/5 opacity-40'
                         }`}
                         style={
-                          hasDiscount
+                          hasPower && gemColor && bonusCount > 0
                             ? {
-                                backgroundColor: `${gemColor.primary}20`,
-                                borderColor: `${gemColor.primary}60`,
-                                boxShadow: `0 0 14px ${gemColor.glow}`,
+                                borderColor: `${gemColor.primary}50`,
+                                boxShadow: `0 0 12px ${gemColor.glow}20`,
                               }
                             : undefined
                         }
-                        title={`Permanent +${count} discount for ${gemColor.name}`}
+                        title={
+                          isGold
+                            ? `Gold: ${tokenCount} Wild tokens`
+                            : `${token}: ${totalPower} Total Power (${tokenCount} tokens + ${bonusCount} permanent discount)`
+                        }
                       >
-                        <GemIcon type={gem} size="md" variant="gem" />
+                        <GemIcon
+                          type={token}
+                          size="md"
+                          variant={isGold ? 'chip' : 'gem'}
+                        />
+
+                        {/* Total Purchasing Power */}
                         <span
-                          className={`font-mono font-black text-sm sm:text-base mt-1.5 ${
-                            hasDiscount ? 'text-amber-300' : 'text-slate-500'
+                          className={`font-mono font-black text-base sm:text-lg my-0.5 ${
+                            hasPower
+                              ? isGold
+                                ? 'text-amber-300'
+                                : bonusCount > 0
+                                ? 'text-amber-200'
+                                : 'text-white'
+                              : 'text-slate-500'
                           }`}
                         >
-                          +{count}
+                          {totalPower}
                         </span>
+
+                        {/* Tokens + Discount breakdown pill */}
+                        <div className="flex items-center justify-center gap-0.5 text-[9.5px] sm:text-[10px] font-mono leading-none bg-black/40 px-1 py-0.5 rounded-md border border-white/5 w-full">
+                          {isGold ? (
+                            <span className={hasPower ? 'text-amber-400 font-bold uppercase text-[8.5px]' : 'text-slate-600 text-[8.5px]'}>
+                              WILD
+                            </span>
+                          ) : (
+                            <>
+                              <span
+                                className={tokenCount > 0 ? 'text-slate-200 font-bold' : 'text-slate-600'}
+                                title={`${tokenCount} tokens`}
+                              >
+                                {tokenCount}
+                              </span>
+                              <span className="text-slate-600 text-[8px]">+</span>
+                              <span
+                                className={bonusCount > 0 ? 'text-amber-400 font-bold' : 'text-slate-600'}
+                                title={`+${bonusCount} discount`}
+                              >
+                                {bonusCount}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     );
                   })}

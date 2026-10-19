@@ -6,45 +6,11 @@ import { NobleClaimCelebration } from './NobleClaimCelebration.tsx';
 import { ActionHistoryModal } from './ActionHistoryModal.tsx';
 import { RulesModal } from './RulesModal.tsx';
 import { calculateBonuses } from '../game/rules.ts';
-import { GameLogEntry, GemType, NobleTile, TokenType } from '../types/game.ts';
-import { ALL_TOKENS } from '../game/constants.ts';
-import { GemIcon } from './GemIcon.tsx';
-import { Crown, Shield, Tv, History, BookOpen, Volume2, VolumeX, RotateCcw, Trophy, Sparkles } from 'lucide-react';
+import { GameLogEntry, NobleTile } from '../types/game.ts';
+import { ALL_GEMS, ALL_TOKENS } from '../game/constants.ts';
+import { Crown, Shield, Tv, History, BookOpen, Volume2, VolumeX, RotateCcw, Trophy, Sparkles, Zap } from 'lucide-react';
 import { sound } from '../game/sound.ts';
 import { TurnActionNotification } from './TurnActionNotification.tsx';
-
-const GEM_BUYING_POWER_STYLES: Record<
-  TokenType,
-  {
-    cardActive: string;
-    tokenActive: string;
-  }
-> = {
-  ruby: {
-    cardActive: 'border-red-500/70 bg-red-950/70 text-red-200 shadow-[0_0_8px_rgba(239,68,68,0.25)]',
-    tokenActive: 'border-red-400 bg-red-900/60 text-white shadow-[0_0_8px_rgba(239,68,68,0.3)] ring-1 ring-red-400/50',
-  },
-  sapphire: {
-    cardActive: 'border-blue-500/70 bg-blue-950/70 text-blue-200 shadow-[0_0_8px_rgba(59,130,246,0.25)]',
-    tokenActive: 'border-blue-400 bg-blue-900/60 text-white shadow-[0_0_8px_rgba(59,130,246,0.3)] ring-1 ring-blue-400/50',
-  },
-  emerald: {
-    cardActive: 'border-emerald-500/70 bg-emerald-950/70 text-emerald-200 shadow-[0_0_8px_rgba(16,185,129,0.25)]',
-    tokenActive: 'border-emerald-400 bg-emerald-900/60 text-white shadow-[0_0_8px_rgba(16,185,129,0.3)] ring-1 ring-emerald-400/50',
-  },
-  diamond: {
-    cardActive: 'border-slate-300/70 bg-slate-800/70 text-slate-100 shadow-[0_0_8px_rgba(255,255,255,0.2)]',
-    tokenActive: 'border-slate-200 bg-slate-700/70 text-white shadow-[0_0_8px_rgba(255,255,255,0.3)] ring-1 ring-white/60',
-  },
-  onyx: {
-    cardActive: 'border-slate-500/70 bg-slate-900/90 text-slate-300 shadow-[0_0_8px_rgba(100,116,139,0.2)]',
-    tokenActive: 'border-slate-400 bg-slate-800/80 text-slate-100 shadow-[0_0_8px_rgba(100,116,139,0.3)] ring-1 ring-slate-400/50',
-  },
-  gold: {
-    cardActive: 'border-transparent bg-transparent text-slate-700',
-    tokenActive: 'border-amber-400 bg-gradient-to-br from-amber-500/40 to-yellow-600/40 text-amber-200 shadow-[0_0_10px_rgba(245,158,11,0.45)] ring-1 ring-amber-300/70',
-  },
-};
 
 interface HostTableViewProps {
   publicState: PublicGameState;
@@ -368,7 +334,7 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
 
         {/* Right Column: Player Game Details Scoreboard */}
         <aside
-          className="relative flex flex-col gap-2 w-full max-w-[288px] xl:max-w-[308px] shrink-0 z-10 justify-self-center lg:justify-self-start"
+          className="relative flex flex-col gap-2 w-full max-w-[270px] xl:max-w-[300px] shrink-0 z-10 justify-self-center lg:justify-self-start"
           aria-label="Players Scoreboard"
         >
           <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-[#121826]/80 border border-white/8 shrink-0">
@@ -393,36 +359,36 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
               return (
                 <div
                   key={p.id}
-                  className={`p-2.5 sm:p-3 rounded-2xl border transition-all ${
+                  className={`p-2 sm:p-2.5 rounded-2xl border transition-all ${
                     isActive
                       ? 'bg-[#151e33] border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
                       : 'bg-[#121826] border-white/8 opacity-90 hover:opacity-100'
                   }`}
                 >
-                  {/* Row 1: Enlarged Avatar, Name, Reserved count & VP Score */}
-                  <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-white/5">
-                    <div className="flex items-center gap-2.5 min-w-0">
+                  {/* Row 1: Avatar, Name, VP score */}
+                  <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-white/5">
+                    <div className="flex items-center gap-2 min-w-0">
                       <div className="relative shrink-0">
-                        <span className="text-3xl filter drop-shadow-md">{p.avatar}</span>
+                        <span className="text-2xl filter drop-shadow">{p.avatar}</span>
                         {isActive && (
-                          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 ring-2 ring-[#151e33] animate-pulse" />
+                          <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#151e33] animate-pulse" />
                         )}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-['Cinzel'] font-bold text-sm sm:text-base text-slate-100 truncate flex items-center gap-1.5">
+                        <div className="font-['Cinzel'] font-bold text-xs sm:text-sm text-slate-100 truncate flex items-center gap-1.5">
                           <span className={isActive ? 'text-amber-300 font-black' : 'text-slate-100'}>
                             {p.name}
                           </span>
                           {isActive && (
-                            <span className="px-1.5 py-0.5 rounded bg-amber-500/25 text-amber-300 border border-amber-500/40 text-[9px] font-black font-sans uppercase tracking-wider">
+                            <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-black font-sans uppercase">
                               TURN
                             </span>
                           )}
                         </div>
-                        <div className="text-xs text-slate-400 font-mono flex items-center gap-1.5 mt-0.5">
+                        <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">
                           <span>{p.cards.length} cards</span>
                           {p.reservedCardsCount > 0 && (
-                            <span className="text-amber-300 font-bold bg-amber-500/15 px-1.5 py-0.5 rounded border border-amber-500/30 text-[10px]">
+                            <span className="text-amber-400 font-bold bg-amber-500/10 px-1 rounded border border-amber-500/20">
                               {p.reservedCardsCount} res
                             </span>
                           )}
@@ -430,89 +396,107 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
                       </div>
                     </div>
 
-                    {/* Prominent Prestige Points Shield */}
-                    <div className="flex items-center gap-1.5 bg-gradient-to-br from-amber-500/25 to-yellow-500/15 border border-amber-400/50 px-3 py-1.5 rounded-xl shrink-0 shadow-md">
-                      <Crown size={15} className="text-amber-400" />
-                      <span className="font-['Cinzel'] font-black text-amber-300 text-base sm:text-lg leading-none">
+                    {/* Prestige Points */}
+                    <div className="flex items-center gap-1 bg-gradient-to-br from-amber-500/20 to-yellow-500/10 border border-amber-500/40 px-2.5 py-1 rounded-xl shrink-0 shadow-sm">
+                      <Crown size={13} className="text-amber-400" />
+                      <span className="font-['Cinzel'] font-black text-amber-300 text-sm leading-none">
                         {p.prestigePoints}
                       </span>
-                      <span className="text-[10px] text-amber-400/80 font-mono font-bold leading-none">/{publicState.targetVP}</span>
+                      <span className="text-[9px] text-amber-400/70 font-mono leading-none">/{publicState.targetVP}</span>
                     </div>
                   </div>
 
-                  {/* Combined Buying Power: 6 Color Columns (Card Discounts stacked right above Tokens) */}
-                  <div className="bg-[#0B0F1A]/85 rounded-xl p-2 border border-white/5">
-                    {/* Header Bar with Legend: [Rect] Card Discounts · [Circle] Tokens in Hand */}
-                    <div className="flex items-center justify-between mb-1.5 px-0.5">
-                      <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider font-['Cinzel']">
-                        Buying Power
-                      </span>
-                      <div className="flex items-center gap-2 text-[10px] font-mono">
-                        <span className="text-amber-300 font-bold flex items-center gap-1" title="Permanent Card Discounts">
-                          <span className="inline-block w-2.5 h-3 rounded-[2px] border border-amber-400/60 bg-amber-400/20" />
-                          +{totalBonuses}
+                  {/* Unified Buying Power Strip (Total Power = Tokens + Discounts combined) */}
+                  <div className="bg-[#0B0F1A]/80 rounded-xl p-1.5 border border-white/5">
+                    <div className="flex items-center justify-between text-[10px] mb-1 px-0.5">
+                      <div className="flex items-center gap-1">
+                        <Zap size={11} className="text-amber-400" />
+                        <span className="text-slate-300 font-semibold uppercase tracking-wider font-['Cinzel'] text-[9.5px]">
+                          Buying Power
                         </span>
-                        <span className="text-slate-500">·</span>
-                        <span className="text-slate-200 font-bold flex items-center gap-1" title="Tokens in Hand (max 10)">
-                          <span className="inline-block w-2.5 h-2.5 rounded-full border border-slate-300/60 bg-slate-300/20" />
-                          {totalTokens}/10
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[9.5px] font-mono">
+                        <span className={totalTokens > 8 ? 'text-amber-400 font-bold' : 'text-slate-400'} title="Tokens in hand / 10 max limit">
+                          {totalTokens}/10<span className="text-[8px] text-slate-500 ml-0.5">tok</span>
+                        </span>
+                        <span className="text-white/20">•</span>
+                        <span className="text-amber-300 font-bold" title="Permanent card bonuses">
+                          +{totalBonuses}<span className="text-[8px] text-amber-500/80 ml-0.5">disc</span>
                         </span>
                       </div>
                     </div>
 
-                    {/* 6 Color Columns (5 Gems + 1 Gold) */}
-                    <div className="grid grid-cols-6 gap-1 sm:gap-1.5">
+                    <div className="grid grid-cols-6 gap-1">
                       {ALL_TOKENS.map(t => {
-                        const isGem = t !== 'gold';
-                        const bonus = isGem ? (bonuses[t as GemType] || 0) : 0;
+                        const isGold = t === 'gold';
                         const tokenCount = p.tokens[t] || 0;
-                        const styles = GEM_BUYING_POWER_STYLES[t];
-                        const totalPower = bonus + tokenCount;
+                        const bonusCount = isGold ? 0 : (bonuses[t as GemType] || 0);
+                        const totalPower = tokenCount + bonusCount;
+                        const hasPower = totalPower > 0;
 
                         return (
                           <div
                             key={t}
-                            className="flex flex-col items-center gap-1"
+                            className={`flex flex-col items-center justify-between py-1 px-0.5 rounded-lg border transition-all ${
+                              hasPower
+                                ? isGold
+                                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-300 shadow-xs'
+                                  : bonusCount > 0
+                                  ? 'bg-amber-500/8 border-amber-500/25 text-white shadow-xs'
+                                  : 'bg-white/5 border-white/10 text-white'
+                                : 'bg-transparent border-transparent text-slate-600 opacity-25'
+                            }`}
                             title={
-                              t === 'gold'
-                                ? `Gold: ${tokenCount} wild tokens in hand`
-                                : `${t.toUpperCase()}: ${bonus} card bonus + ${tokenCount} tokens = ${totalPower} total buying power`
+                              isGold
+                                ? `Gold: ${tokenCount} Wildcard token${tokenCount === 1 ? '' : 's'}`
+                                : `${t}: ${totalPower} Total Power (${tokenCount} token${tokenCount === 1 ? '' : 's'} + ${bonusCount} discount)`
                             }
                           >
-                            {/* Column Gem Identity */}
-                            <div className="flex items-center justify-center w-full py-0.5">
-                              <GemIcon
-                                type={t}
-                                size="xs"
-                                variant={t === 'gold' ? 'chip' : 'gem'}
-                                className="w-3.5 h-3.5 filter drop-shadow"
-                              />
-                            </div>
+                            <GemIcon
+                              type={t}
+                              size="xs"
+                              variant={isGold ? 'chip' : 'gem'}
+                              className="w-3.5 h-3.5 shrink-0"
+                            />
 
-                            {/* Card Discount: Small Card Rectangle */}
-                            <div
-                              className={`w-full h-6.5 rounded-md border flex items-center justify-center transition-all ${
-                                bonus > 0
-                                  ? styles.cardActive
-                                  : 'bg-[#0B0F1A]/40 border-white/5 text-slate-600 opacity-25'
+                            {/* Total Buying Power (Hero number) */}
+                            <span
+                              className={`font-mono font-black text-xs sm:text-sm leading-none my-0.5 ${
+                                hasPower
+                                  ? isGold
+                                    ? 'text-amber-300 font-black'
+                                    : bonusCount > 0
+                                    ? 'text-amber-100 font-black'
+                                    : 'text-white'
+                                  : 'text-slate-600'
                               }`}
                             >
-                              <span className="font-mono text-xs font-black leading-none">
-                                {t === 'gold' ? '—' : bonus > 0 ? `+${bonus}` : '0'}
-                              </span>
-                            </div>
+                              {totalPower}
+                            </span>
 
-                            {/* Token Count: Small Circular Chip */}
-                            <div
-                              className={`w-full max-w-[28px] h-6.5 rounded-full border flex items-center justify-center transition-all ${
-                                tokenCount > 0
-                                  ? styles.tokenActive
-                                  : 'bg-transparent border-white/5 text-slate-600 opacity-20'
-                              }`}
-                            >
-                              <span className="font-mono text-xs font-black leading-none">
-                                {tokenCount}
-                              </span>
+                            {/* Breakdown: tokens + discount */}
+                            <div className="flex items-center justify-center gap-0.5 text-[8.5px] font-mono leading-none">
+                              {isGold ? (
+                                <span className={hasPower ? 'text-amber-400/90 font-bold uppercase text-[7.5px]' : 'text-slate-600 text-[7.5px]'}>
+                                  WILD
+                                </span>
+                              ) : (
+                                <>
+                                  <span
+                                    className={tokenCount > 0 ? 'text-slate-200 font-bold' : 'text-slate-600'}
+                                    title={`${tokenCount} tokens`}
+                                  >
+                                    {tokenCount}
+                                  </span>
+                                  <span className="text-slate-600 text-[7px]">+</span>
+                                  <span
+                                    className={bonusCount > 0 ? 'text-amber-400 font-bold' : 'text-slate-600'}
+                                    title={`+${bonusCount} discount`}
+                                  >
+                                    {bonusCount}
+                                  </span>
+                                </>
+                              )}
                             </div>
                           </div>
                         );
