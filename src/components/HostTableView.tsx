@@ -133,33 +133,33 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
           </div>
 
           {/* Gem Bank Pill inside Header */}
-          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 rounded-full bg-[#0B0F1A]/90 border border-white/10 shadow-inner shrink-0">
-            <div className="flex items-center gap-1 pr-1.5 border-r border-white/10">
-              <Sparkles size={12} className="text-amber-400" />
-              <span className="font-['Cinzel'] font-bold text-[10px] uppercase tracking-wider text-amber-200 hidden md:inline">
+          <div className="flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#070B14]/95 border border-amber-500/25 shadow-md shrink-0">
+            <div className="flex items-center gap-1.5 pr-2 sm:pr-2.5 border-r border-white/10">
+              <Sparkles size={16} className="text-amber-400" />
+              <span className="font-['Cinzel'] font-bold text-xs sm:text-sm uppercase tracking-wider text-amber-200 hidden md:inline">
                 BANK
               </span>
             </div>
-            <div className="flex items-center gap-1 sm:gap-1.5">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               {ALL_TOKENS.map(t => {
                 const count = publicState.bank[t] || 0;
                 return (
                   <div
                     key={t}
-                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md border transition-all ${
+                    className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg border transition-all ${
                       count > 0
-                        ? 'bg-white/5 border-white/10 text-white'
+                        ? 'bg-white/5 border-white/10 text-white shadow-xs'
                         : 'bg-white/2 border-transparent text-slate-600 opacity-25'
                     }`}
                     title={`${t}: ${count} available in gem bank`}
                   >
                     <GemIcon
                       type={t}
-                      size="xs"
+                      size="sm"
                       variant={t === 'gold' ? 'chip' : 'gem'}
-                      className="w-3.5 h-3.5"
+                      className="w-5 h-5 sm:w-6 sm:h-6 shrink-0"
                     />
-                    <span className="font-mono font-bold text-xs text-slate-100">
+                    <span className="font-mono font-black text-sm sm:text-base text-white leading-none">
                       {count}
                     </span>
                   </div>

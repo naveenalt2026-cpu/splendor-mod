@@ -314,14 +314,14 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
           </div>
 
           {/* Interactive Gem Bank Pill inside Header */}
-          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 rounded-full bg-[#0B0F1A]/90 border border-white/10 shadow-inner shrink-0">
-            <div className="flex items-center gap-1 pr-1.5 border-r border-white/10">
-              <Sparkles size={12} className="text-amber-400" />
-              <span className="font-['Cinzel'] font-bold text-[10px] uppercase tracking-wider text-amber-200 hidden md:inline">
+          <div className="flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#070B14]/95 border border-amber-500/25 shadow-md shrink-0">
+            <div className="flex items-center gap-1.5 pr-2 sm:pr-2.5 border-r border-white/10">
+              <Sparkles size={16} className="text-amber-400" />
+              <span className="font-['Cinzel'] font-bold text-xs sm:text-sm uppercase tracking-wider text-amber-200 hidden md:inline">
                 BANK
               </span>
             </div>
-            <div className="flex items-center gap-1 sm:gap-1.5">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               {ALL_TOKENS.map((t) => {
                 const count = state.bank[t] || 0;
                 const isGem = t !== 'gold';
@@ -334,7 +334,7 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
                     type="button"
                     disabled={!isHumanTurn || !isGem || (count === 0 && !isStaged)}
                     onClick={() => isGem && handleToggleStagedGem(t as GemType)}
-                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md border transition-all ${
+                    className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg border transition-all ${
                       isStaged
                         ? 'bg-amber-400/20 border-amber-400 ring-2 ring-amber-400/50 scale-105 shadow-sm'
                         : count > 0
@@ -351,15 +351,15 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
                   >
                     <GemIcon
                       type={t}
-                      size="xs"
+                      size="sm"
                       variant={t === 'gold' ? 'chip' : 'gem'}
-                      className="w-3.5 h-3.5"
+                      className="w-5 h-5 sm:w-6 sm:h-6 shrink-0"
                     />
-                    <span className="font-mono font-bold text-xs text-slate-100">
+                    <span className="font-mono font-black text-sm sm:text-base text-white leading-none">
                       {count}
                     </span>
                     {stagedCount > 0 && (
-                      <span className="font-mono font-black text-[10px] text-amber-300 bg-amber-950/90 px-1 rounded-full border border-amber-400/60 leading-none">
+                      <span className="font-mono font-black text-xs text-amber-300 bg-amber-950/90 px-1.5 py-0.5 rounded-full border border-amber-400/60 leading-none">
                         +{stagedCount}
                       </span>
                     )}
@@ -370,14 +370,14 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
 
             {/* Token staging confirmation / cancel button */}
             {stagedGems.length > 0 && isHumanTurn && (
-              <div className="flex items-center gap-1 ml-1 pl-1.5 border-l border-white/10">
+              <div className="flex items-center gap-1.5 ml-1 pl-2 border-l border-white/10">
                 <button
                   type="button"
                   disabled={!canConfirmTokens}
                   onClick={handleConfirmTakeTokens}
-                  className={`py-0.5 px-2 rounded-md font-['Cinzel'] font-black text-[10px] uppercase tracking-wider flex items-center gap-1 transition-all ${
+                  className={`py-1 px-2.5 rounded-lg font-['Cinzel'] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all ${
                     canConfirmTokens
-                      ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_0_10px_rgba(16,185,129,0.4)] cursor-pointer active:scale-95'
+                      ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_0_12px_rgba(16,185,129,0.4)] cursor-pointer active:scale-95'
                       : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
                   }`}
                   title={
@@ -386,16 +386,16 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
                       : 'Take 3 different gems or 2 of the same color (if 4+ in bank)'
                   }
                 >
-                  <Check size={11} className="stroke-[3]" />
+                  <Check size={13} className="stroke-[3]" />
                   <span>Take ({stagedGems.length})</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleClearStaged}
-                  className="p-1 rounded-md text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 text-xs transition-colors cursor-pointer"
                   title="Clear staged tokens"
                 >
-                  <X size={11} />
+                  <X size={13} />
                 </button>
               </div>
             )}
