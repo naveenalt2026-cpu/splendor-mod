@@ -206,9 +206,13 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
 
       {/* Main Playing Arena: 3 Columns (Left: Nobles Dais | Center: Cards Arena | Right: Scoreboard) */}
       <main className="relative flex-1 max-w-[1536px] w-full mx-auto py-2.5 sm:py-3.5 flex flex-col lg:grid lg:grid-cols-[1fr_auto_1fr] items-center lg:items-start justify-center gap-4 lg:gap-6 z-10 overflow-y-auto">
-        {/* Left Column: Noble Patrons Dais (Decreased width, sleek cameo tiles) */}
+        {/* Left Column: Noble Patrons Dais (Zero overflow, 2x2 grid when 4+ nobles) */}
         <aside
-          className="relative flex flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-[#121826]/90 border border-white/8 shadow-xl backdrop-blur-md shrink-0 z-10 w-full max-w-[170px] xl:max-w-[180px] justify-self-center lg:justify-self-end"
+          className={`relative flex flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-[#121826]/90 border border-white/8 shadow-xl backdrop-blur-md shrink-0 z-10 w-full ${
+            publicState.nobles.length > 3
+              ? 'max-w-[280px] xl:max-w-[300px]'
+              : 'max-w-[170px] xl:max-w-[180px]'
+          } justify-self-center lg:justify-self-end`}
           aria-label="Noble Patrons Dais"
         >
           <div className="flex items-center justify-between gap-1.5 mb-2 pb-2 border-b border-white/10 w-full px-1 shrink-0">
@@ -228,7 +232,13 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
               All Nobles Claimed!
             </div>
           ) : (
-            <div className="w-full flex flex-col gap-2">
+            <div
+              className={`w-full gap-2 ${
+                publicState.nobles.length > 3
+                  ? 'grid grid-cols-2'
+                  : 'flex flex-col'
+              }`}
+            >
               {publicState.nobles.map(noble => (
                 <NobleTileView
                   key={noble.id}
