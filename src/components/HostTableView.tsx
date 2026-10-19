@@ -168,15 +168,54 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
         </div>
       </header>
 
-      {/* Main Playing Arena: 3 Symmetrical Columns sharing identical top: 0 and bottom flush alignment */}
-      <main className="relative flex-1 max-w-[1536px] w-full mx-auto py-2.5 sm:py-3.5 flex flex-col lg:grid lg:grid-cols-[1fr_auto_1fr] items-stretch justify-center gap-6 xl:gap-8 z-10 overflow-y-auto">
-        {/* Left Column: Noble Patrons Dais (Flush with top and bottom of card market) */}
+      {/* Subheader: Horizontal Gem Bank Strip - Centered */}
+      <section
+        className="w-full max-w-[1536px] mx-auto mt-2 px-4 py-2 rounded-xl bg-[#121826]/90 border border-white/8 backdrop-blur-md flex items-center justify-center gap-3 sm:gap-6 flex-wrap shadow-md z-20"
+        aria-label="Gem Bank Tokens"
+      >
+        <div className="flex items-center gap-1.5 shrink-0 pr-3 sm:pr-5 border-r border-white/10">
+          <Sparkles size={14} className="text-amber-400" />
+          <span className="font-['Cinzel'] font-black text-xs sm:text-sm uppercase tracking-wider text-amber-200">
+            GEM BANK
+          </span>
+        </div>
+
+        <div className="flex items-center justify-center gap-2 sm:gap-3 md:gap-4 flex-wrap">
+          {ALL_TOKENS.map(t => {
+            const count = publicState.bank[t] || 0;
+            return (
+              <div
+                key={t}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all ${
+                  count > 0
+                    ? 'bg-[#0B0F1A] border-white/10 text-white shadow-xs'
+                    : 'bg-white/5 border-transparent text-slate-500 opacity-25'
+                }`}
+                title={`${t}: ${count} available in gem bank`}
+              >
+                <GemIcon
+                  type={t}
+                  size="sm"
+                  variant={t === 'gold' ? 'chip' : 'gem'}
+                  className="w-4 h-4 sm:w-5 sm:h-5"
+                />
+                <span className="font-mono font-black text-xs sm:text-sm text-slate-100">
+                  {count}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Main Playing Arena: 3 Columns (Left: Nobles Dais | Center: Cards Arena | Right: Scoreboard) */}
+      <main className="relative flex-1 max-w-[1536px] w-full mx-auto py-2 sm:py-3 flex flex-col lg:grid lg:grid-cols-[1fr_auto_1fr] items-center lg:items-start justify-center gap-4 lg:gap-6 z-10 overflow-y-auto">
+        {/* Left Column: Noble Patrons Dais (Zero scroll, sleek cameo tiles) */}
         <aside
-          className="relative flex flex-col justify-between p-2.5 sm:p-3 rounded-2xl bg-[#121826]/90 border border-white/8 shadow-xl backdrop-blur-md shrink-0 z-10 w-full max-w-[240px] xl:max-w-[260px] h-full justify-self-center lg:justify-self-end"
+          className="relative flex flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-[#121826]/90 border border-white/8 shadow-xl backdrop-blur-md shrink-0 z-10 w-full max-w-[240px] xl:max-w-[260px] justify-self-center lg:justify-self-end"
           aria-label="Noble Patrons Dais"
         >
-          {/* Top Header: Exact top: 0 alignment line matching Market and Scoreboard */}
-          <div className="flex items-center justify-between gap-1.5 px-3 py-1.5 rounded-xl bg-[#121826]/80 border border-white/8 w-full shrink-0 h-9">
+          <div className="flex items-center justify-between gap-1.5 mb-2 pb-2 border-b border-white/10 w-full px-1 shrink-0">
             <div className="flex items-center gap-1.5">
               <Shield size={14} className="text-amber-400" />
               <span className="font-['Cinzel'] font-bold text-xs uppercase tracking-wider text-amber-200">
@@ -188,13 +227,12 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
             </span>
           </div>
 
-          {/* Middle: Nobles tiles distributed evenly */}
           {publicState.nobles.length === 0 ? (
-            <div className="text-xs text-slate-500 font-['Cinzel'] p-6 text-center my-auto">
+            <div className="text-xs text-slate-500 font-['Cinzel'] p-6 text-center">
               All Nobles Claimed!
             </div>
           ) : (
-            <div className="w-full flex-1 flex flex-col justify-around py-2 gap-2">
+            <div className="w-full flex flex-col gap-2">
               {publicState.nobles.map(noble => (
                 <NobleTileView
                   key={noble.id}
@@ -205,60 +243,13 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
               ))}
             </div>
           )}
-
-          {/* Bottom Pedestal: Aligns flush with bottom of T1 row */}
-          <div className="pt-2 border-t border-white/5 w-full flex items-center justify-between text-[10px] text-slate-400 font-['Cinzel'] px-1 shrink-0">
-            <span>Patron Honors</span>
-            <span className="font-mono text-amber-300 font-bold">
-              +{publicState.nobles.length * 3} VP total
-            </span>
-          </div>
         </aside>
 
-        {/* Center Column: Card Market (Top Header with Gem Bank + T3/T2/T1 rows) */}
+        {/* Center Column: Three Horizontal Rows of Development Cards (Tier 3 -> Tier 2 -> Tier 1) */}
         <section
-          className="flex flex-col gap-2 shrink-0 justify-self-center mx-auto overflow-x-auto pb-1"
+          className="flex flex-col gap-1.5 sm:gap-2 shrink-0 justify-self-center mx-auto overflow-x-auto pb-1"
           aria-label="Development Cards Arena"
         >
-          {/* Top Header: Exact top: 0 alignment line housing Market label + Contained Gem Bank */}
-          <div className="flex items-center justify-between gap-3 px-3 py-1.5 rounded-xl bg-[#121826]/80 border border-white/8 w-full shrink-0 h-9">
-            <div className="flex items-center gap-1.5 shrink-0">
-              <Sparkles size={14} className="text-amber-400" />
-              <span className="font-['Cinzel'] font-bold text-xs uppercase tracking-wider text-amber-200">
-                Card Market
-              </span>
-            </div>
-
-            {/* Contained Gem Bank Tokens hugging its content */}
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              {ALL_TOKENS.map(t => {
-                const count = publicState.bank[t] || 0;
-                return (
-                  <div
-                    key={t}
-                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded-lg border transition-all ${
-                      count > 0
-                        ? 'bg-[#0B0F1A] border-white/10 text-white shadow-xs'
-                        : 'bg-white/5 border-transparent text-slate-500 opacity-25'
-                    }`}
-                    title={`${t}: ${count} available in gem bank`}
-                  >
-                    <GemIcon
-                      type={t}
-                      size="xs"
-                      variant={t === 'gold' ? 'chip' : 'gem'}
-                      className="w-3.5 h-3.5"
-                    />
-                    <span className="font-mono font-black text-xs text-slate-100">
-                      {count}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Three Horizontal Rows of Development Cards (Tier 3 -> Tier 2 -> Tier 1) */}
           {([3, 2, 1] as const).map(tier => {
             const faceUp = publicState.faceUpCards[tier] || [];
             const deckRemaining = publicState.decks[tier] || 0;
@@ -286,10 +277,10 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
                   };
 
             return (
-              <div key={tier} className="flex items-center justify-center gap-3 sm:gap-3.5 shrink-0">
+              <div key={tier} className="flex items-center justify-center gap-1.5 sm:gap-2 shrink-0">
                 {/* Tier Deck Card Stack */}
                 <div
-                  className={`relative shrink-0 rounded-2xl border ${tierStyle.border} ${tierStyle.bg} w-14 sm:w-16 md:w-18 h-42 sm:h-44 md:h-46 flex flex-col items-center justify-center select-none shadow-md`}
+                  className={`relative shrink-0 rounded-2xl border ${tierStyle.border} ${tierStyle.bg} w-14 sm:w-16 md:w-18 h-42 sm:h-46 md:h-48 flex flex-col items-center justify-center select-none shadow-md`}
                 >
                   <span className={`px-2 py-0.5 rounded-full border text-xs font-mono font-bold ${tierStyle.badge}`}>
                     {tierStyle.label}
@@ -302,8 +293,8 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
                   </div>
                 </div>
 
-                {/* 4 Face-Up Cards per Tier with tight Gestalt spacing (gap-2.5 sm:gap-3) */}
-                <div className="grid grid-cols-4 gap-2.5 sm:gap-3 shrink-0">
+                {/* 4 Face-Up Cards per Tier with reduced column spacing */}
+                <div className="grid grid-cols-4 gap-1.5 sm:gap-2 shrink-0">
                   {faceUp.map(card => (
                     <div key={card.id} className="relative shrink-0">
                       <DevelopmentCardView
@@ -319,225 +310,154 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
           })}
         </section>
 
-        {/* Right Column: Player Game Details Scoreboard & Recent Activity Log */}
+        {/* Right Column: Player Game Details Scoreboard */}
         <aside
-          className="relative flex flex-col justify-between gap-3 w-full max-w-[270px] xl:max-w-[300px] shrink-0 z-10 justify-self-center lg:justify-self-start h-full"
-          aria-label="Players Scoreboard and Activity"
+          className="relative flex flex-col gap-2 w-full max-w-[270px] xl:max-w-[300px] shrink-0 z-10 justify-self-center lg:justify-self-start"
+          aria-label="Players Scoreboard"
         >
-          {/* Top Section: Scoreboard */}
-          <div className="flex flex-col gap-2 shrink-0">
-            {/* Header: Exact top: 0 alignment line matching Nobles and Market */}
-            <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-[#121826]/80 border border-white/8 shrink-0 h-9">
-              <div className="flex items-center gap-1.5">
-                <Crown size={14} className="text-amber-400" />
-                <span className="font-['Cinzel'] font-bold text-xs uppercase tracking-wider text-amber-200">
-                  Scoreboard
-                </span>
-              </div>
-              <span className="text-[10px] text-slate-400 font-mono">
-                Target: <b className="text-amber-300 font-mono">{publicState.targetVP}</b> VP
+          <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-[#121826]/80 border border-white/8 shrink-0">
+            <div className="flex items-center gap-1.5">
+              <Crown size={14} className="text-amber-400" />
+              <span className="font-['Cinzel'] font-bold text-xs uppercase tracking-wider text-amber-200">
+                Scoreboard
               </span>
             </div>
-
-            <div className="flex flex-col gap-2">
-              {publicState.players.map((p, idx) => {
-                const isActive = idx === publicState.activePlayerIndex;
-                const bonuses = calculateBonuses(p.cards);
-                const totalBonuses = Object.values(bonuses).reduce((a, b) => a + b, 0);
-                const totalTokens = Object.values(p.tokens).reduce((acc, c) => acc + c, 0);
-
-                return (
-                  <div
-                    key={p.id}
-                    className={`p-2 sm:p-2.5 rounded-2xl border transition-all ${
-                      isActive
-                        ? 'bg-[#151e33] border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
-                        : 'bg-[#121826] border-white/8 opacity-90 hover:opacity-100'
-                    }`}
-                  >
-                    {/* Row 1: Avatar, Name, VP score */}
-                    <div className="flex items-center justify-between mb-1.5 pb-1 border-b border-white/5">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <div className="relative shrink-0">
-                          <span className="text-xl filter drop-shadow">{p.avatar}</span>
-                          {isActive && (
-                            <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-[#151e33] animate-pulse" />
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="font-['Cinzel'] font-bold text-xs text-slate-100 truncate flex items-center gap-1">
-                            <span className={isActive ? 'text-amber-300 font-black' : 'text-slate-100'}>
-                              {p.name}
-                            </span>
-                            {isActive && (
-                              <span className="px-1 py-0.1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[8px] font-black font-sans uppercase">
-                                TURN
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-[9px] text-slate-400 font-mono flex items-center gap-1">
-                            <span>{p.cards.length} cards</span>
-                            {p.reservedCardsCount > 0 && (
-                              <span className="text-amber-400 font-bold bg-amber-500/10 px-1 rounded border border-amber-500/20">
-                                {p.reservedCardsCount} res
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Prestige Points */}
-                      <div className="flex items-center gap-1 bg-gradient-to-br from-amber-500/20 to-yellow-500/10 border border-amber-500/40 px-2 py-0.5 rounded-xl shrink-0 shadow-sm">
-                        <Crown size={12} className="text-amber-400" />
-                        <span className="font-['Cinzel'] font-black text-amber-300 text-xs sm:text-sm leading-none">
-                          {p.prestigePoints}
-                        </span>
-                        <span className="text-[8px] text-amber-400/70 font-mono leading-none">/{publicState.targetVP}</span>
-                      </div>
-                    </div>
-
-                    {/* Row 2: Tokens in Hand (6 tokens) */}
-                    <div className="bg-[#0B0F1A]/80 rounded-lg p-1 mb-1 border border-white/5">
-                      <div className="flex items-center justify-between text-[9px] mb-0.5 px-0.5">
-                        <span className="text-slate-400 font-semibold uppercase tracking-wider font-['Cinzel']">
-                          Tokens
-                        </span>
-                        <span className="font-mono text-slate-400 font-bold text-[9px]">
-                          {totalTokens}/10
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-6 gap-0.5">
-                        {ALL_TOKENS.map(t => {
-                          const count = p.tokens[t] || 0;
-                          return (
-                            <div
-                              key={t}
-                              className={`flex items-center justify-center gap-0.5 px-0.5 py-0.5 rounded border transition-opacity ${
-                                count > 0
-                                  ? 'bg-white/5 border-white/15 text-white'
-                                  : 'bg-transparent border-transparent text-slate-600 opacity-25'
-                              }`}
-                              title={`${t}: ${count}`}
-                            >
-                              <GemIcon
-                                type={t}
-                                size="xs"
-                                variant={t === 'gold' ? 'chip' : 'gem'}
-                                className="w-3 h-3"
-                              />
-                              <span className="font-mono text-[11px] font-black">{count}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Row 3: Engine Discounts (5 gems) */}
-                    <div className="bg-[#0B0F1A]/60 rounded-lg p-1 border border-white/5">
-                      <div className="flex items-center justify-between text-[9px] mb-0.5 px-0.5">
-                        <span className="text-slate-400 font-semibold uppercase tracking-wider font-['Cinzel']">
-                          Discounts
-                        </span>
-                        <span className="font-mono text-amber-400 font-bold text-[9px]">
-                          +{totalBonuses}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-5 gap-0.5">
-                        {ALL_GEMS.map(g => {
-                          const bonus = bonuses[g] || 0;
-                          return (
-                            <div
-                              key={g}
-                              className={`flex items-center justify-center gap-0.5 px-0.5 py-0.5 rounded border transition-opacity ${
-                                bonus > 0
-                                  ? 'bg-amber-500/15 border-amber-500/35 text-amber-300'
-                                  : 'bg-transparent border-transparent text-slate-600 opacity-25'
-                              }`}
-                              title={`+${bonus} ${g} bonus`}
-                            >
-                              <GemIcon
-                                type={g}
-                                size="xs"
-                                variant="gem"
-                                className="w-3 h-3"
-                              />
-                              <span className="font-mono text-[11px] font-black">+{bonus}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <span className="text-[10px] text-slate-400 font-mono">
+              Target: <b className="text-amber-300 font-mono">{publicState.targetVP}</b> VP
+            </span>
           </div>
 
-          {/* Bottom Section: Recent Activity / Live Action Log (Fills bottom-right dead zone flush with T1) */}
-          <div className="flex-1 min-h-[140px] rounded-2xl bg-[#121826]/90 border border-white/8 shadow-xl backdrop-blur-md p-2.5 flex flex-col justify-between overflow-hidden">
-            <div className="flex items-center justify-between pb-1 mb-1.5 border-b border-white/10 shrink-0">
-              <div className="flex items-center gap-1.5">
-                <History size={13} className="text-amber-400" />
-                <span className="font-['Cinzel'] font-bold text-xs uppercase tracking-wider text-amber-200">
-                  Recent Activity
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsHistoryOpen(true)}
-                className="text-[10px] text-slate-400 hover:text-amber-300 font-mono cursor-pointer transition-colors"
-              >
-                All &rarr;
-              </button>
-            </div>
+          <div className="flex flex-col gap-2 overflow-y-auto max-h-none lg:max-h-[calc(100vh-140px)] pr-0.5">
+            {publicState.players.map((p, idx) => {
+              const isActive = idx === publicState.activePlayerIndex;
+              const bonuses = calculateBonuses(p.cards);
+              const totalBonuses = Object.values(bonuses).reduce((a, b) => a + b, 0);
+              const totalTokens = Object.values(p.tokens).reduce((acc, c) => acc + c, 0);
 
-            <div className="flex-1 flex flex-col gap-1.5 overflow-y-auto pr-0.5">
-              {publicState.log && publicState.log.length > 0 ? (
-                publicState.log.slice(0, 3).map(entry => (
-                  <div
-                    key={entry.id}
-                    className="flex items-center justify-between gap-1.5 px-2 py-1.5 rounded-xl bg-[#0B0F1A]/80 border border-white/5 text-xs"
-                  >
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="text-base shrink-0">
-                        {entry.details?.playerAvatar || '👤'}
-                      </span>
+              return (
+                <div
+                  key={p.id}
+                  className={`p-2 sm:p-2.5 rounded-2xl border transition-all ${
+                    isActive
+                      ? 'bg-[#151e33] border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
+                      : 'bg-[#121826] border-white/8 opacity-90 hover:opacity-100'
+                  }`}
+                >
+                  {/* Row 1: Avatar, Name, VP score */}
+                  <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-white/5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="relative shrink-0">
+                        <span className="text-2xl filter drop-shadow">{p.avatar}</span>
+                        {isActive && (
+                          <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#151e33] animate-pulse" />
+                        )}
+                      </div>
                       <div className="min-w-0">
-                        <span className="font-bold text-slate-200 truncate block text-[11px] leading-tight">
-                          {entry.playerName}
-                        </span>
-                        <span className="text-[10px] text-slate-400 truncate block leading-tight">
-                          {entry.action === 'buy_card' ? (
-                            <span className="text-emerald-400 flex items-center gap-1">
-                              Purchased Card
-                              {entry.details?.cardBonus && (
-                                <GemIcon type={entry.details.cardBonus} size="xs" variant="gem" className="inline w-3 h-3" />
-                              )}
-                              {entry.details?.prestigePointsGained ? ` (+${entry.details.prestigePointsGained} VP)` : ''}
+                        <div className="font-['Cinzel'] font-bold text-xs sm:text-sm text-slate-100 truncate flex items-center gap-1.5">
+                          <span className={isActive ? 'text-amber-300 font-black' : 'text-slate-100'}>
+                            {p.name}
+                          </span>
+                          {isActive && (
+                            <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-black font-sans uppercase">
+                              TURN
                             </span>
-                          ) : entry.action === 'reserve_card' ? (
-                            <span className="text-amber-400">Reserved Card (+1 Gold)</span>
-                          ) : entry.action === 'noble_visit' ? (
-                            <span className="text-yellow-300">Visited by Noble (+3 VP)</span>
-                          ) : entry.action === 'take_tokens' ? (
-                            <span className="text-sky-300">Took Gem Tokens</span>
-                          ) : (
-                            entry.description
                           )}
-                        </span>
+                        </div>
+                        <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1">
+                          <span>{p.cards.length} cards</span>
+                          {p.reservedCardsCount > 0 && (
+                            <span className="text-amber-400 font-bold bg-amber-500/10 px-1 rounded border border-amber-500/20">
+                              {p.reservedCardsCount} res
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <span className="text-[9px] font-mono text-slate-500 shrink-0">
-                      T{entry.turn}
-                    </span>
+
+                    {/* Prestige Points */}
+                    <div className="flex items-center gap-1 bg-gradient-to-br from-amber-500/20 to-yellow-500/10 border border-amber-500/40 px-2.5 py-1 rounded-xl shrink-0 shadow-sm">
+                      <Crown size={13} className="text-amber-400" />
+                      <span className="font-['Cinzel'] font-black text-amber-300 text-sm leading-none">
+                        {p.prestigePoints}
+                      </span>
+                      <span className="text-[9px] text-amber-400/70 font-mono leading-none">/{publicState.targetVP}</span>
+                    </div>
                   </div>
-                ))
-              ) : (
-                <div className="text-xs text-slate-500 text-center py-4 font-mono">
-                  Game in progress...
+
+                  {/* Row 2: Tokens in Hand (6 tokens) */}
+                  <div className="bg-[#0B0F1A]/80 rounded-xl p-1.5 mb-1.5 border border-white/5">
+                    <div className="flex items-center justify-between text-[10px] mb-1 px-0.5">
+                      <span className="text-slate-400 font-semibold uppercase tracking-wider font-['Cinzel']">
+                        Tokens
+                      </span>
+                      <span className="font-mono text-slate-400 font-bold text-[10px]">
+                        {totalTokens}/10
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-6 gap-1">
+                      {ALL_TOKENS.map(t => {
+                        const count = p.tokens[t] || 0;
+                        return (
+                          <div
+                            key={t}
+                            className={`flex items-center justify-center gap-0.5 px-0.5 py-0.5 rounded-lg border transition-opacity ${
+                              count > 0
+                                ? 'bg-white/5 border-white/15 text-white'
+                                : 'bg-transparent border-transparent text-slate-600 opacity-25'
+                            }`}
+                            title={`${t}: ${count}`}
+                          >
+                            <GemIcon
+                              type={t}
+                              size="xs"
+                              variant={t === 'gold' ? 'chip' : 'gem'}
+                              className="w-3.5 h-3.5"
+                            />
+                            <span className="font-mono text-xs font-black">{count}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Row 3: Engine Discounts (5 gems) */}
+                  <div className="bg-[#0B0F1A]/60 rounded-xl p-1.5 border border-white/5">
+                    <div className="flex items-center justify-between text-[10px] mb-1 px-0.5">
+                      <span className="text-slate-400 font-semibold uppercase tracking-wider font-['Cinzel']">
+                        Discounts
+                      </span>
+                      <span className="font-mono text-amber-400 font-bold text-[10px]">
+                        +{totalBonuses}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-5 gap-1">
+                      {ALL_GEMS.map(g => {
+                        const bonus = bonuses[g] || 0;
+                        return (
+                          <div
+                            key={g}
+                            className={`flex items-center justify-center gap-0.5 px-0.5 py-0.5 rounded-lg border transition-opacity ${
+                              bonus > 0
+                                ? 'bg-amber-500/15 border-amber-500/35 text-amber-300'
+                                : 'bg-transparent border-transparent text-slate-600 opacity-25'
+                            }`}
+                            title={`+${bonus} ${g} bonus`}
+                          >
+                            <GemIcon
+                              type={g}
+                              size="xs"
+                              variant="gem"
+                              className="w-3.5 h-3.5"
+                            />
+                            <span className="font-mono text-xs font-black">+{bonus}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
+              );
+            })}
           </div>
         </aside>
       </main>
