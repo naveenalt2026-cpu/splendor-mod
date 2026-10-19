@@ -58,6 +58,7 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
 
   const bonuses = myPlayer ? calculateBonuses(myPlayer.cards) : { ruby: 0, sapphire: 0, emerald: 0, diamond: 0, onyx: 0 };
   const totalTokens = myPlayer ? Object.values(myPlayer.tokens).reduce((acc, c) => acc + c, 0) : 0;
+  const totalBonuses = Object.values(bonuses).reduce((acc, c) => acc + c, 0);
   const reservedCards = privateState?.reservedCards || [];
 
   // Private affordability calculations for player's view
@@ -416,27 +417,61 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
                     );
                   })}
                 </div>
+              </section>
 
-                {/* Permanent Discounts shown as small elegant +X badges directly underneath */}
-                <div className="mt-2.5 pt-2.5 border-t border-white/5 flex items-center justify-between flex-wrap gap-1.5">
-                  <span className="text-[11px] text-slate-400 font-['Cinzel'] font-bold flex items-center gap-1">
-                    <Layers size={13} className="text-amber-400" />
-                    <span>Permanent Discounts:</span>
+              {/* “Permanent Discounts” Section: Large, Prominent & Tactile */}
+              <section className="p-3.5 sm:p-4 rounded-2xl bg-[#121826] border border-white/8 shadow-md">
+                <div className="flex items-center justify-between mb-2.5">
+                  <span className="font-['Cinzel'] font-bold text-xs text-amber-200 uppercase tracking-wide flex items-center gap-1.5">
+                    <Layers size={14} className="text-amber-400" />
+                    <span>Permanent Discounts</span>
                   </span>
-                  <div className="flex items-center gap-1.5">
-                    {ALL_GEMS.map(gem => (
+                  <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-full ${
+                    totalBonuses > 0
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm'
+                      : 'text-slate-400'
+                  }`}>
+                    +{totalBonuses} Cards Active
+                  </span>
+                </div>
+
+                {/* 5 Prominent Gem Discount Tiles */}
+                <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+                  {ALL_GEMS.map(gem => {
+                    const count = bonuses[gem] || 0;
+                    const gemColor = GEM_COLORS[gem];
+                    const hasDiscount = count > 0;
+
+                    return (
                       <div
                         key={gem}
-                        className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-[#0B0F1A] border border-white/10"
-                        title={`${gem} bonus: +${bonuses[gem]}`}
+                        className={`flex flex-col items-center justify-center p-2 rounded-2xl border transition-all ${
+                          hasDiscount
+                            ? 'shadow-md scale-[1.02]'
+                            : 'bg-[#0B0F1A]/50 border-white/5 opacity-40'
+                        }`}
+                        style={
+                          hasDiscount
+                            ? {
+                                backgroundColor: `${gemColor.primary}20`,
+                                borderColor: `${gemColor.primary}60`,
+                                boxShadow: `0 0 14px ${gemColor.glow}`,
+                              }
+                            : undefined
+                        }
+                        title={`Permanent +${count} discount for ${gemColor.name}`}
                       >
-                        <GemIcon type={gem} size="xs" variant="gem" />
-                        <span className="font-mono font-bold text-[10px] text-amber-300">
-                          +{bonuses[gem] || 0}
+                        <GemIcon type={gem} size="md" variant="gem" />
+                        <span
+                          className={`font-mono font-black text-sm sm:text-base mt-1.5 ${
+                            hasDiscount ? 'text-amber-300' : 'text-slate-500'
+                          }`}
+                        >
+                          +{count}
                         </span>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
               </section>
             </div>
