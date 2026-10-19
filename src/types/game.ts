@@ -69,7 +69,7 @@ export interface GameState {
     3: DevelopmentCard[];
   };
   nobles: NobleTile[];
-  status: 'setup' | 'playing' | 'final_round' | 'game_over';
+  status: 'lobby' | 'setup' | 'playing' | 'final_round' | 'game_over';
   winnerId: string | null;
   log: GameLogEntry[];
   turnCount: number;
@@ -78,6 +78,11 @@ export interface GameState {
   pendingTokenDiscard: {
     playerIndex: number;
     countToDiscard: number;
+  } | null;
+  claimedNobleEvent?: {
+    noble: NobleTile;
+    playerIndex: number;
+    playerName: string;
   } | null;
 }
 

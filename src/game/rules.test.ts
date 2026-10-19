@@ -122,3 +122,37 @@ test('AI generates valid legal actions and progresses state', async () => {
   assert.equal(afterAIState.activePlayerIndex, 0);
 });
 
+test('checkNobleVisits triggers claimedNobleEvent and awards 3 prestige points', async () => {
+  const { checkNobleVisits } = await import('./rules.ts');
+  const state = createInitialGameState({ playerCount: 2 });
+  const testNoble = state.nobles[0];
+
+  // Give player 0 cards that satisfy testNoble requirements
+  const cards: DevelopmentCard[] = [];
+  for (const [gem, count] of Object.entries(testNoble.requirements)) {
+    for (let i = 0; i < count; i++) {
+      cards.push({
+        id: `card_${gem}_${i}`,
+        tier: 1 as const,
+        gemBonus: gem as any,
+        prestigePoints: 0,
+        cost: {},
+        name: `Test ${gem}`,
+        illustration: '✨',
+      });
+    }
+  }
+
+  const stateWithCards = {
+    ...state,
+    players: state.players.map((p, idx) => (idx === 0 ? { ...p, cards } : p)),
+  };
+
+  const nextState = checkNobleVisits(stateWithCards, 0);
+  assert.equal(nextState.players[0].nobles.length, 1);
+  assert.equal(nextState.players[0].nobles[0].id, testNoble.id);
+  assert.equal(nextState.players[0].prestigePoints, 3);
+  assert.ok(nextState.claimedNobleEvent);
+  assert.equal(nextState.claimedNobleEvent?.noble.id, testNoble.id);
+  assert.equal(nextState.claimedNobleEvent?.playerIndex, 0);
+});

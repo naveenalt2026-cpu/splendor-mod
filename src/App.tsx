@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { GameState, GemType, TokenCount } from './types/game.ts';
+import { GameState, GemType, TokenCount, NobleTile } from './types/game.ts';
 import {
   calculateBonuses,
   checkCardAffordability,
@@ -27,279 +27,394 @@ import { ActionHistoryModal } from './components/ActionHistoryModal.tsx';
 import { DiscardTokensModal } from './components/DiscardTokensModal.tsx';
 import { GameOverModal } from './components/GameOverModal.tsx';
 import { GameSettingsModal } from './components/GameSettingsModal.tsx';
-import { Shield } from 'lucide-react';
+import { NobleClaimCelebration } from './components/NobleClaimCelebration.tsx';
+import { Shield, Sparkles, Check, X, Tv, Smartphone, Crown, Users } from 'lucide-react';
+import { useMultiplayerSocket } from './hooks/useMultiplayerSocket.ts';
+import { HostLobbyView } from './components/HostLobbyView.tsx';
+import { HostTableView } from './components/HostTableView.tsx';
+import { MobilePlayerView } from './components/MobilePlayerView.tsx';
+import { MobileJoinScreen } from './components/MobileJoinScreen.tsx';
+import { MobileLobbyWaiting } from './components/MobileLobbyWaiting.tsx';
+
+type AppMode = 'choose_mode' | 'host' | 'player' | 'solo';
 
 export default function App() {
-  const [state, setState] = useState<GameState>(() =>
+  const urlParams = new URLSearchParams(window.location.search);
+  const sessionParam = urlParams.get('session');
+  const roleParam = urlParams.get('role');
+
+  const [mode, setMode] = useState<AppMode>(() => {
+    if (sessionParam && roleParam === 'player') return 'player';
+    if (roleParam === 'host') return 'host';
+    return 'choose_mode';
+  });
+
+  // Multiplayer WebSocket Hook
+  const {
+    isConnected,
+    sessionId,
+    joinUrl,
+    myPlayerId,
+    myPlayerIndex,
+    publicState,
+    privateState,
+    lobbyPlayers,
+    canStart,
+    errorMessage,
+    createHostSession,
+    joinSession,
+    addAIPlayer,
+    startHostGame,
+    restartHostGame,
+    sendGameAction,
+  } = useMultiplayerSocket();
+
+  // Initialize Host Session when entering host mode if none exists
+  useEffect(() => {
+    if (mode === 'host' && !sessionId) {
+      createHostSession(15);
+    }
+  }, [mode, sessionId, createHostSession]);
+
+  // Solo local game state
+  const [soloState, setSoloState] = useState<GameState>(() =>
     createInitialGameState({ playerCount: 2, aiDifficulty: 'medium' })
   );
-
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [stagedGems, setStagedGems] = useState<GemType[]>([]);
+  const [confirmingDeckTier, setConfirmingDeckTier] = useState<1 | 2 | 3 | null>(null);
   const [helperMessage, setHelperMessage] = useState<string>('SELECT A CARD TO BUY OR RESERVE');
-
-  // Modals state
   const [isRulesOpen, setIsRulesOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [celebratingNoble, setCelebratingNoble] = useState<{
+    noble: NobleTile;
+    playerName: string;
+    isHuman: boolean;
+  } | null>(null);
   const [matchConfig, setMatchConfig] = useState({
     playerCount: 2,
     aiDifficulty: 'medium' as 'easy' | 'medium' | 'hard',
     targetVP: 15,
   });
 
-  const activePlayer = state.players[state.activePlayerIndex];
-  const isHumanTurn = state.activePlayerIndex === 0 && state.status !== 'game_over';
-  const humanPlayer = state.players[0];
+  const activePlayer = soloState.players[soloState.activePlayerIndex];
+  const isHumanTurn = soloState.activePlayerIndex === 0 && soloState.status !== 'game_over';
+  const humanPlayer = soloState.players[0];
   const humanBonuses = calculateBonuses(humanPlayer.cards);
 
-  // Clear selections when turn changes
+  // Solo mode AI turn progression
   useEffect(() => {
-    setSelectedCardId(null);
-    setStagedGems([]);
-    if (state.activePlayerIndex === 0) {
-      sound.playTurnChime();
-      setHelperMessage('YOUR TURN: SELECT A CARD OR CHOOSE GEMS');
-    }
-  }, [state.activePlayerIndex, state.turnCount]);
-
-  // Check victory fanfare
-  useEffect(() => {
-    if (state.status === 'game_over') {
-      sound.playVictory();
-    }
-  }, [state.status]);
-
-  // Handle AI Turns with realistic pacing
-  useEffect(() => {
-    if (state.status === 'game_over') return;
-    if (state.activePlayerIndex !== 0) {
+    if (mode !== 'solo' || soloState.status === 'game_over') return;
+    if (soloState.activePlayerIndex !== 0) {
+      setConfirmingDeckTier(null);
       setHelperMessage(`${activePlayer.name.toUpperCase()} IS FORMULATING STRATEGY...`);
       const timer = setTimeout(() => {
-        setState(prev => {
+        setSoloState(prev => {
           if (prev.activePlayerIndex === 0 || prev.status === 'game_over') return prev;
           const next = executeAIMove(prev, prev.activePlayerIndex);
           sound.playTokenDrop();
           return next;
         });
       }, 1000);
-
       return () => clearTimeout(timer);
     }
-  }, [state.activePlayerIndex, state.status, activePlayer.name]);
+  }, [mode, soloState.activePlayerIndex, soloState.status, activePlayer.name]);
 
-  // Handlers for Human Player actions
+  // Solo mode turn resets
+  useEffect(() => {
+    if (mode !== 'solo') return;
+    setSelectedCardId(null);
+    setStagedGems([]);
+    setConfirmingDeckTier(null);
+    if (soloState.activePlayerIndex === 0) {
+      sound.playTurnChime();
+      setHelperMessage('YOUR TURN: SELECT A CARD OR CHOOSE GEMS');
+    }
+  }, [mode, soloState.activePlayerIndex, soloState.turnCount]);
+
+  // Handle Solo actions
   const handleToggleStagedGem = (gem: GemType) => {
     if (!isHumanTurn) return;
     setSelectedCardId(null);
+    setConfirmingDeckTier(null);
     sound.playTokenPickup();
-
     setStagedGems(prev => {
-      // If clicking same gem again
       if (prev.includes(gem)) {
-        // If it was already staged once and total count is 1
-        if (prev.length === 1 && prev[0] === gem) {
-          // Stage a 2nd if bank >= 4
-          if ((state.bank[gem] || 0) >= 4) {
-            setHelperMessage(`STAGED 2 ${gem.toUpperCase()} GEMS. CLICK COLLECT.`);
-            return [gem, gem];
-          } else {
-            setHelperMessage(`CANNOT TAKE 2 ${gem.toUpperCase()}: BANK HAS LESS THAN 4.`);
-            return [];
-          }
-        }
-        // If already has 2 or in a set, remove this gem
-        const filtered = prev.filter(g => g !== gem);
-        setHelperMessage(filtered.length > 0 ? `COLLECTING ${filtered.length} GEMS` : 'SELECT GEMS OR A CARD');
-        return filtered;
+        if (prev.filter(g => g === gem).length === 1 && prev.length === 1) return [gem, gem];
+        return prev.filter(g => g !== gem);
       }
-
-      // If user had staged 2 of same gem, reset to start distinct selection
-      if (prev.length === 2 && prev[0] === prev[1]) {
-        return [gem];
-      }
-
-      // Max 3 distinct gems
-      if (prev.length >= 3) {
-        setHelperMessage('MAX 3 DIFFERENT GEMS ALLOWED PER TURN.');
-        return prev;
-      }
-
-      const next = [...prev, gem];
-      setHelperMessage(`STAGED ${next.length} GEMS (${next.join(', ')}). CLICK COLLECT.`);
-      return next;
+      if (prev.length >= 3) return prev;
+      return [...prev, gem];
     });
   };
 
-  const handleClearStaged = () => {
-    setStagedGems([]);
-    setHelperMessage('SELECT A CARD TO BUY OR RESERVE');
-  };
+  const handleClearStaged = () => setStagedGems([]);
 
   const handleConfirmTakeTokens = () => {
     if (!isHumanTurn || stagedGems.length === 0) return;
-    const res = executeTakeTokens(state, 0, stagedGems);
+    const res = executeTakeTokens(soloState, 0, stagedGems);
     if (res.error) {
-      setHelperMessage(`ERROR: ${res.error}`);
+      setHelperMessage(res.error.toUpperCase());
+      sound.playError();
       return;
     }
     sound.playTokenDrop();
     setStagedGems([]);
-    setState(res.nextState);
+    setSoloState(res.nextState);
   };
 
   const handleBuyCard = (cardId: string, fromReserved = false) => {
     if (!isHumanTurn) return;
-    const res = executeBuyCard(state, 0, cardId, fromReserved);
+    const res = executeBuyCard(soloState, 0, cardId, fromReserved);
     if (res.error) {
-      setHelperMessage(`ERROR: ${res.error}`);
+      setHelperMessage(res.error.toUpperCase());
+      sound.playError();
       return;
     }
     sound.playBuyCard();
     setSelectedCardId(null);
-    setState(res.nextState);
-  };
-
-  const handleReserveCard = (cardId: string) => {
-    if (!isHumanTurn) return;
-    const res = executeReserveCard(state, 0, cardId);
-    if (res.error) {
-      setHelperMessage(`ERROR: ${res.error}`);
-      return;
-    }
-    sound.playReserveCard();
-    setSelectedCardId(null);
-    setState(res.nextState);
+    setSoloState(res.nextState);
   };
 
   const handleReserveDeck = (tier: 1 | 2 | 3) => {
     if (!isHumanTurn) return;
-    const res = executeReserveCard(state, 0, undefined, tier);
+    const res = executeReserveCard(soloState, 0, undefined, tier);
     if (res.error) {
-      setHelperMessage(`ERROR: ${res.error}`);
+      setHelperMessage(res.error.toUpperCase());
+      sound.playError();
       return;
     }
-    sound.playReserveCard();
-    setState(res.nextState);
+    sound.playTokenPickup();
+    setConfirmingDeckTier(null);
+    setSoloState(res.nextState);
   };
 
   const handleConfirmDiscard = (tokensToDiscard: Partial<TokenCount>) => {
-    const res = executeDiscardTokens(state, 0, tokensToDiscard);
+    const res = executeDiscardTokens(soloState, 0, tokensToDiscard);
     if (res.error) {
-      setHelperMessage(`ERROR: ${res.error}`);
+      sound.playError();
       return;
     }
     sound.playTokenDrop();
-    setState(res.nextState);
+    setSoloState(res.nextState);
   };
 
-  const handleResetGame = (config = matchConfig) => {
-    const newState = createInitialGameState({
-      playerCount: config.playerCount,
-      aiDifficulty: config.aiDifficulty,
-    });
-    newState.targetVP = config.targetVP;
-    setState(newState);
+  const handleResetGame = (newConfig = matchConfig) => {
+    setSoloState(createInitialGameState(newConfig));
     setSelectedCardId(null);
     setStagedGems([]);
-    setHelperMessage('MATCH STARTED: SELECT A CARD OR COLLECT GEMS');
+    setConfirmingDeckTier(null);
+    setHelperMessage('MATCH COMMENCED. FIRST TO 15 VP WINS.');
   };
 
-  const handlePassTurn = () => {
-    if (!isHumanTurn) return;
-    setState(prev => finalizeTurn(prev));
-  };
-
-  return (
-    <div
-      className="relative min-h-screen w-full flex flex-col justify-between overflow-x-hidden font-['Plus_Jakarta_Sans'] bg-slate-950 text-slate-100 select-none"
-      style={{
-        background: `
-          radial-gradient(ellipse 95% 85% at 50% 45%, #0f172a 0%, #090d16 55%, #020408 100%)
-        `,
-      }}
-    >
-      {/* Mystical Cosmic Velvet & Arcane Energy Vortex (Direct Reference Match) */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        {/* Central Arcane Table Light Bloom */}
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] lg:w-[1000px] h-[550px] lg:h-[700px] rounded-full opacity-30 filter blur-[80px]"
-          style={{
-            background: `radial-gradient(circle, rgba(56,189,248,0.3) 0%, rgba(99,102,241,0.2) 35%, rgba(239,68,68,0.18) 70%, transparent 100%)`,
-          }}
+  // -------------------------------------------------------------
+  // ROUTE 1: Dedicated Host View (Central Shared Board on TV/Tablet)
+  // -------------------------------------------------------------
+  if (mode === 'host') {
+    // If game has not started yet, show Host Lobby with Large QR Code
+    if (!publicState || publicState.status === 'lobby') {
+      return (
+        <HostLobbyView
+          sessionId={sessionId || 'INITIALIZING...'}
+          joinUrl={joinUrl || `${window.location.origin}/?session=${sessionId || ''}&role=player`}
+          players={lobbyPlayers}
+          canStart={canStart}
+          onStartGame={startHostGame}
+          onAddAI={() => addAIPlayer('medium')}
+          onExitHost={() => setMode('choose_mode')}
         />
+      );
+    }
 
-        {/* Ethereal Rainbow Cosmic Energy Rings */}
-        <svg
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1100px] h-[750px] opacity-40 pointer-events-none"
-          viewBox="0 0 1100 750"
-        >
-          <defs>
-            <linearGradient id="orbitGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#ef4444" stopOpacity="0.8" />
-              <stop offset="30%" stopColor="#3b82f6" stopOpacity="0.9" />
-              <stop offset="70%" stopColor="#10b981" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.7" />
-            </linearGradient>
-            <linearGradient id="orbitGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
-              <stop offset="50%" stopColor="#a855f7" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#f43f5e" stopOpacity="0.8" />
-            </linearGradient>
-            <filter id="glowFilter" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="6" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
-          </defs>
+    // Permanent "Table View" (Central Shared Board)
+    return (
+      <HostTableView
+        publicState={publicState}
+        onRestartMatch={restartHostGame}
+        onExitHost={() => setMode('choose_mode')}
+      />
+    );
+  }
 
-          {/* Glowing Arcane Trails */}
-          <ellipse
-            cx="550"
-            cy="375"
-            rx="460"
-            ry="280"
-            fill="none"
-            stroke="url(#orbitGrad1)"
-            strokeWidth="2.5"
-            filter="url(#glowFilter)"
-            strokeDasharray="600 30"
-          />
-          <ellipse
-            cx="550"
-            cy="375"
-            rx="480"
-            ry="295"
-            fill="none"
-            stroke="url(#orbitGrad2)"
-            strokeWidth="1.5"
-            strokeDasharray="400 120"
-            opacity="0.6"
-          />
+  // -------------------------------------------------------------
+  // ROUTE 2: Mobile Player View (Personal handheld controller)
+  // -------------------------------------------------------------
+  if (mode === 'player') {
+    // If not connected to a session yet, show Mobile Join Screen
+    if (!myPlayerId || !publicState || myPlayerIndex === null) {
+      return (
+        <MobileJoinScreen
+          initialSessionId={sessionParam || sessionId || ''}
+          onJoin={(sCode, name, avatar) => {
+            joinSession(sCode, name, avatar);
+          }}
+          onSwitchToHost={() => setMode('host')}
+        />
+      );
+    }
 
-          {/* Starlight Sparkles */}
-          <circle cx="280" cy="220" r="3" fill="#ffffff" filter="url(#glowFilter)" />
-          <circle cx="820" cy="240" r="3" fill="#fde047" filter="url(#glowFilter)" />
-          <circle cx="690" cy="540" r="2.5" fill="#38bdf8" filter="url(#glowFilter)" />
-          <circle cx="360" cy="500" r="2.5" fill="#f43f5e" filter="url(#glowFilter)" />
-        </svg>
+    // If game has not started yet, show Mobile Lobby Waiting screen
+    if (publicState.status === 'lobby') {
+      const myPlayer = publicState.players[myPlayerIndex];
+      return (
+        <MobileLobbyWaiting
+          sessionId={publicState.sessionId}
+          myPlayerName={myPlayer?.name || 'Player'}
+          myAvatar={myPlayer?.avatar || '👑'}
+          myPlayerIndex={myPlayerIndex}
+          lobbyPlayers={lobbyPlayers.length > 0 ? lobbyPlayers : publicState.players}
+        />
+      );
+    }
+
+    // Handheld focused player interface during active match
+    return (
+      <MobilePlayerView
+        publicState={publicState}
+        privateState={privateState}
+        myPlayerId={myPlayerId}
+        myPlayerIndex={myPlayerIndex}
+        onSendAction={sendGameAction}
+        errorMessage={errorMessage}
+      />
+    );
+  }
+
+  // -------------------------------------------------------------
+  // ROUTE 3: Initial Mode Chooser (Welcome Screen)
+  // -------------------------------------------------------------
+  if (mode === 'choose_mode') {
+    return (
+      <div className="min-h-screen bg-radial from-slate-900 via-slate-950 to-black text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 select-none relative overflow-hidden">
+        {/* Background glow */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-radial from-amber-500/20 via-yellow-600/5 to-transparent blur-3xl pointer-events-none" />
+
+        <div className="w-full max-w-xl p-6 sm:p-8 rounded-3xl bg-slate-950/90 border-2 border-amber-400 shadow-[0_0_50px_rgba(251,191,36,0.3)] backdrop-blur-md flex flex-col items-center text-center relative z-10">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-600 flex items-center justify-center text-slate-950 shadow-[0_0_25px_rgba(251,191,36,0.6)] mb-4">
+            <Crown size={36} className="stroke-[2.5]" />
+          </div>
+
+          <h1 className="font-['Cinzel'] font-black text-2xl sm:text-3xl text-amber-200 tracking-wider">
+            SPLENDOR
+          </h1>
+          <p className="font-['Cinzel'] font-bold text-xs sm:text-sm text-amber-400/90 tracking-widest uppercase mt-0.5 mb-6">
+            Renaissance Gem Masters • Multiplayer Experience
+          </p>
+
+          <p className="text-xs sm:text-sm text-slate-300 max-w-md mb-8">
+            Experience authentic tabletop Splendor where one screen acts as the dedicated Host board, and all players connect via mobile phones.
+          </p>
+
+          {/* 3 Main Mode Selection Tiles */}
+          <div className="flex flex-col gap-3.5 w-full">
+            {/* 1. Host Mode (Featured Primary Option) */}
+            <button
+              type="button"
+              onClick={() => {
+                setMode('host');
+                createHostSession(15);
+              }}
+              className="w-full p-4 rounded-2xl bg-gradient-to-r from-amber-950/90 via-slate-900 to-amber-950/90 border-2 border-amber-400 hover:border-amber-300 flex items-center gap-4 transition-all hover:scale-[1.02] shadow-xl hover:shadow-[0_0_30px_rgba(251,191,36,0.4)] cursor-pointer text-left group"
+            >
+              <div className="w-12 h-12 rounded-xl bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow">
+                <Tv size={26} className="stroke-[2.5]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-['Cinzel'] font-black text-base text-amber-200 group-hover:text-amber-100 flex items-center gap-2">
+                  <span>START HOST TABLE VIEW</span>
+                  <span className="text-[10px] bg-amber-400 text-slate-950 font-black px-1.5 py-0.2 rounded-full uppercase">
+                    TV / Table
+                  </span>
+                </div>
+                <div className="text-xs text-slate-400 mt-0.5">
+                  Creates room & displays large QR code for mobile phones to scan and join.
+                </div>
+              </div>
+            </button>
+
+            {/* 2. Join as Mobile Player */}
+            <button
+              type="button"
+              onClick={() => setMode('player')}
+              className="w-full p-4 rounded-2xl bg-slate-900/80 hover:bg-slate-900 border border-slate-700 hover:border-amber-400/80 flex items-center gap-4 transition-all hover:scale-[1.01] cursor-pointer text-left group"
+            >
+              <div className="w-12 h-12 rounded-xl bg-slate-800 text-amber-300 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform border border-slate-700">
+                <Smartphone size={26} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-['Cinzel'] font-black text-base text-slate-200 group-hover:text-amber-200">
+                  JOIN ON MOBILE
+                </div>
+                <div className="text-xs text-slate-400 mt-0.5">
+                  Enter 6-letter room code or join directly via scanned QR code.
+                </div>
+              </div>
+            </button>
+
+            {/* 3. Solo Practice vs AI */}
+            <button
+              type="button"
+              onClick={() => setMode('solo')}
+              className="w-full p-3.5 rounded-2xl bg-slate-950 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center gap-4 transition-all cursor-pointer text-left group"
+            >
+              <div className="w-12 h-12 rounded-xl bg-slate-900 text-slate-400 flex items-center justify-center shrink-0 border border-slate-800">
+                <Users size={22} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-['Cinzel'] font-bold text-sm text-slate-300 group-hover:text-amber-200">
+                  Solo Practice vs AI
+                </div>
+                <div className="text-xs text-slate-500">
+                  Single-device mode against computer opponents.
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
       </div>
+    );
+  }
 
-      {/* Top HUD */}
+  // -------------------------------------------------------------
+  // ROUTE 4: Solo Practice vs AI (Single Device)
+  // -------------------------------------------------------------
+  return (
+    <div className="min-h-screen bg-radial from-slate-900 via-slate-950 to-black text-slate-100 flex flex-col justify-between p-2 sm:p-4 select-none relative overflow-x-hidden font-sans">
+      <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-25 pointer-events-none" />
+
+      {/* Top Bar HUD */}
       <TopHUD
-        state={state}
+        activePlayer={activePlayer}
+        turnCount={soloState.turnCount}
+        isFinalRound={soloState.status === 'final_round'}
+        helperMessage={helperMessage}
         onOpenRules={() => setIsRulesOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onRestartMatch={() => handleResetGame()}
         onOpenHistory={() => setIsHistoryOpen(true)}
-        onResetGame={() => handleResetGame()}
-        helperText={helperMessage}
+        humanPlayer={humanPlayer}
+        targetVP={soloState.targetVP}
       />
 
-      {/* Main Playing Arena - Fully Responsive */}
+      {/* Switch to Multiplayer prompt banner */}
+      <div className="max-w-7xl w-full mx-auto px-2 flex justify-end z-20">
+        <button
+          type="button"
+          onClick={() => setMode('choose_mode')}
+          className="text-[11px] font-['Cinzel'] font-bold text-amber-300 hover:text-amber-100 bg-amber-950/70 border border-amber-500/50 px-3 py-1 rounded-full flex items-center gap-1.5 transition-all cursor-pointer"
+        >
+          <Tv size={12} />
+          <span>Switch to Multi-Device Host Mode</span>
+        </button>
+      </div>
+
+      {/* Main Playing Arena */}
       <main className="relative flex-1 max-w-7xl w-full mx-auto px-2 sm:px-4 py-2 sm:py-3 flex flex-col lg:flex-row items-center lg:items-center justify-between gap-3 lg:gap-4 z-10 overflow-y-auto">
-        {/* Left Side: 3D-styled Gem Bank Chip Stacks */}
+        {/* Left Side: 3D Gem Bank Chip Stacks */}
         <div className="flex lg:flex-col items-center justify-center shrink-0 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0">
           <GemChipRack
-            bank={state.bank}
+            bank={soloState.bank}
             stagedGems={stagedGems}
             onToggleStagedGem={handleToggleStagedGem}
             onClearStaged={handleClearStaged}
@@ -311,16 +426,38 @@ export default function App() {
         {/* Center Arena: 3 Tiers of Development Cards Grid */}
         <div className="flex-1 flex flex-col items-center justify-center gap-2.5 sm:gap-3.5 w-full max-w-4xl mx-auto overflow-x-auto pb-1">
           {([3, 2, 1] as const).map(tier => {
-            const faceUp = state.faceUpCards[tier];
-            const deckRemaining = state.decks[tier].length;
+            const faceUp = soloState.faceUpCards[tier];
+            const deckRemaining = soloState.decks[tier].length;
 
             return (
               <div key={tier} className="relative flex items-center justify-center gap-2 sm:gap-3 min-w-[580px] sm:min-w-0 w-full">
-                {/* Tier Deck Stack with Card Back */}
+                {/* Tier Deck Stack with Card Back & On-Card Minimalist Confirmation */}
                 <div
-                  onClick={() => isHumanTurn && handleReserveDeck(tier)}
+                  onClick={() => {
+                    if (!isHumanTurn) return;
+                    if (humanPlayer.reservedCards.length >= 3) {
+                      setHelperMessage('CANNOT RESERVE: RESERVED HAND IS FULL (MAX 3 CARDS).');
+                      return;
+                    }
+                    if (deckRemaining === 0) {
+                      setHelperMessage(`TIER ${tier} DECK IS EMPTY.`);
+                      return;
+                    }
+                    setSelectedCardId(null);
+                    setStagedGems([]);
+                    sound.playTokenPickup();
+                    const nextTier = confirmingDeckTier === tier ? null : tier;
+                    setConfirmingDeckTier(nextTier);
+                    setHelperMessage(
+                      nextTier
+                        ? `RESERVE TIER ${tier} CARD FROM DECK (+1 GOLD)? CONFIRM ON THE DECK.`
+                        : 'SELECT A CARD TO BUY OR RESERVE'
+                    );
+                  }}
                   className={`relative shrink-0 rounded-xl border-2 flex flex-col items-center justify-center select-none shadow-xl transition-all ${
-                    tier === 3
+                    confirmingDeckTier === tier
+                      ? 'w-20 sm:w-24 md:w-26 h-36 sm:h-40 md:h-44 border-amber-300 ring-4 ring-amber-400/80 shadow-[0_0_25px_rgba(251,191,36,0.8)] scale-105 z-30'
+                      : tier === 3
                       ? 'w-16 sm:w-20 md:w-22 h-36 sm:h-40 md:h-44 border-amber-400/80 bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 shadow-indigo-950/80'
                       : tier === 2
                       ? 'w-16 sm:w-20 md:w-22 h-36 sm:h-40 md:h-44 border-sky-400/70 bg-gradient-to-br from-cyan-950 via-slate-900 to-sky-900 shadow-cyan-950/80'
@@ -331,16 +468,73 @@ export default function App() {
                       : 'cursor-default opacity-85'
                   }`}
                   title={`Tier ${tier} Deck: ${deckRemaining} cards remaining. Click to blind reserve.`}
+                  role="button"
+                  aria-label={`Tier ${tier} Deck: ${deckRemaining} cards remaining`}
                 >
-                  <div className="font-['Cinzel'] font-black text-amber-300 text-sm sm:text-base">
-                    T{tier}
-                  </div>
-                  <div className="text-[10px] sm:text-xs font-bold text-slate-200 mt-1">
-                    {deckRemaining}
-                  </div>
-                  <div className="text-[9px] text-amber-200/70 uppercase font-['Cinzel'] mt-0.5">
-                    Cards
-                  </div>
+                  {confirmingDeckTier === tier ? (
+                    <div
+                      onClick={e => e.stopPropagation()}
+                      className="absolute inset-0 rounded-xl bg-slate-950/95 backdrop-blur-xs flex flex-col items-center justify-between p-2 z-30 animate-fade-in"
+                    >
+                      <div className="flex flex-col items-center text-center">
+                        <span className="font-['Cinzel'] font-bold text-amber-300 text-[10px] sm:text-xs uppercase tracking-wider">
+                          Reserve T{tier}
+                        </span>
+                        <span className="text-[10px] text-amber-200 font-bold mt-0.5 flex items-center gap-0.5">
+                          <span>+1 Gold</span>
+                          <span className="text-yellow-400">🪙</span>
+                        </span>
+                      </div>
+
+                      <div className="text-center my-0.5">
+                        <span className="text-[9px] font-['Cinzel'] text-slate-300 font-semibold uppercase block">
+                          Confirm?
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-center gap-1.5 w-full">
+                        <button
+                          type="button"
+                          onClick={e => {
+                            e.stopPropagation();
+                            setConfirmingDeckTier(null);
+                            handleReserveDeck(tier);
+                          }}
+                          className="flex-1 py-1 sm:py-1.5 px-1 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-['Cinzel'] font-black text-[10px] sm:text-xs flex items-center justify-center gap-1 shadow-md transition-all cursor-pointer active:scale-95 ring-1 ring-emerald-300"
+                          title="Confirm blind reservation"
+                          aria-label={`Confirm reserve Tier ${tier} deck`}
+                        >
+                          <Check size={12} className="stroke-[3]" />
+                          <span>YES</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={e => {
+                            e.stopPropagation();
+                            setConfirmingDeckTier(null);
+                          }}
+                          className="py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-['Cinzel'] text-[10px] sm:text-xs flex items-center justify-center shadow transition-all cursor-pointer"
+                          title="Cancel"
+                          aria-label="Cancel reserve"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="font-['Cinzel'] font-black text-amber-300 text-sm sm:text-base">
+                        T{tier}
+                      </div>
+                      <div className="text-[10px] sm:text-xs font-bold text-slate-200 mt-1">
+                        {deckRemaining}
+                      </div>
+                      <div className="text-[9px] text-amber-200/70 uppercase font-['Cinzel'] mt-0.5">
+                        Cards
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* 4 Face-Up Cards per Tier */}
@@ -359,20 +553,31 @@ export default function App() {
                           card={card}
                           affordability={affordability}
                           isSelected={isSelected}
-                          canReserve={humanPlayer.reservedCards.length < 3}
                           onSelect={() => {
                             if (!isHumanTurn) return;
-                            setStagedGems([]);
                             setSelectedCardId(isSelected ? null : card.id);
+                            setStagedGems([]);
+                            setConfirmingDeckTier(null);
                             sound.playTokenPickup();
                             setHelperMessage(
-                              affordability.canAfford
-                                ? `CARD READY! CLICK BUY OR RESERVE.`
-                                : `NEEDS ${affordability.missingGemsCount} MORE GEMS TO BUY.`
+                              isSelected
+                                ? 'YOUR TURN: SELECT A CARD OR CHOOSE GEMS'
+                                : `SELECTED: ${card.name.toUpperCase()} (+${card.prestigePoints} VP)`
                             );
                           }}
-                          onBuy={() => handleBuyCard(card.id)}
-                          onReserve={() => handleReserveCard(card.id)}
+                          onBuy={() => handleBuyCard(card.id, false)}
+                          onReserve={() => {
+                            if (!isHumanTurn) return;
+                            const res = executeReserveCard(soloState, 0, card.id);
+                            if (res.error) {
+                              setHelperMessage(res.error.toUpperCase());
+                              sound.playError();
+                              return;
+                            }
+                            sound.playTokenPickup();
+                            setSelectedCardId(null);
+                            setSoloState(res.nextState);
+                          }}
                           disabled={!isHumanTurn}
                         />
                       </div>
@@ -384,12 +589,11 @@ export default function App() {
           })}
         </div>
 
-        {/* Right Side: Ornate Stone Dais for Noble Patrons */}
+        {/* Right Side: Ornate Nobles Dais */}
         <aside
           className="relative flex lg:flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-gradient-to-b from-slate-950/90 via-slate-900/80 to-slate-950/95 border-2 border-slate-800 shadow-2xl backdrop-blur-md shrink-0 z-10 w-full lg:w-auto overflow-x-auto lg:overflow-y-auto max-h-none lg:max-h-[500px]"
           aria-label="Noble Patrons Dais"
         >
-          {/* Dais Header */}
           <div className="flex lg:flex-col items-center gap-1.5 mb-2 shrink-0 pr-3 lg:pr-0 border-r lg:border-r-0 border-slate-800">
             <div className="font-['Cinzel'] font-bold text-amber-200/90 text-xs tracking-wider uppercase flex items-center gap-1">
               <Shield size={14} className="text-amber-400" />
@@ -398,16 +602,47 @@ export default function App() {
             <div className="text-[10px] text-slate-400 text-center hidden lg:block max-w-[100px]">
               +3 VP on bonus match
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                const sampleNoble = soloState.nobles[0] || {
+                  id: 'noble_catherine',
+                  name: 'Catherine de Medici',
+                  prestigePoints: 3,
+                  requirements: { ruby: 3, emerald: 3, diamond: 3 },
+                  avatar: '👑',
+                  flavorText: 'Patroness of the French Renaissance court and master gem collector.',
+                };
+                setSoloState(prev => ({
+                  ...prev,
+                  players: prev.players.map((p, idx) =>
+                    idx === 0 && !p.nobles.some(n => n.id === sampleNoble.id)
+                      ? { ...p, nobles: [...p.nobles, sampleNoble], prestigePoints: p.prestigePoints + 3 }
+                      : p
+                  ),
+                }));
+                setCelebratingNoble({
+                  noble: sampleNoble,
+                  playerName: humanPlayer.name,
+                  isHuman: true,
+                });
+              }}
+              className="mt-0.5 text-[9px] font-['Cinzel'] font-bold text-amber-300 hover:text-amber-100 flex items-center gap-1 bg-amber-950/70 border border-amber-500/50 px-2 py-0.5 rounded-full hover:scale-105 transition-all cursor-pointer shadow"
+              title="Preview celebratory noble patron claim animation"
+              aria-label="Preview Noble Celebration"
+            >
+              <Sparkles size={10} className="text-amber-400" />
+              <span>Preview</span>
+            </button>
           </div>
 
-          {/* Noble Tiles Stack */}
           <div className="flex lg:flex-col gap-2 sm:gap-2.5 items-center shrink-0">
-            {state.nobles.length === 0 ? (
+            {soloState.nobles.length === 0 ? (
               <div className="text-[11px] text-slate-500 font-['Cinzel'] p-3 text-center">
                 All Claimed!
               </div>
             ) : (
-              state.nobles.map(noble => (
+              soloState.nobles.map(noble => (
                 <NobleTileView
                   key={noble.id}
                   noble={noble}
@@ -419,22 +654,25 @@ export default function App() {
         </aside>
       </main>
 
-      {/* Floating Big Glowing "END TURN" / "PASS" Action Orb on Bottom Left */}
-      <div className="fixed bottom-20 sm:bottom-22 left-3 sm:left-5 z-30">
+      {/* Floating End Turn button */}
+      <div className="fixed bottom-24 sm:bottom-28 left-4 sm:left-6 z-30">
         <button
           type="button"
-          onClick={handlePassTurn}
+          onClick={() => {
+            if (!isHumanTurn) return;
+            sound.playTurnChime();
+            setSoloState(prev => finalizeTurn(prev));
+          }}
           disabled={!isHumanTurn}
-          className={`relative w-16 h-16 sm:w-18 sm:h-18 rounded-full flex flex-col items-center justify-center border-2 shadow-2xl transition-all duration-300 ${
+          className={`relative group w-14 h-14 sm:w-16 sm:h-16 rounded-full flex flex-col items-center justify-center border-2 shadow-2xl transition-all ${
             isHumanTurn
-              ? 'border-cyan-400 bg-gradient-to-br from-slate-950 via-cyan-950 to-slate-900 text-cyan-200 hover:scale-110 active:scale-95 cursor-pointer shadow-[0_0_25px_rgba(6,182,212,0.6)] ring-2 ring-cyan-300'
-              : 'border-slate-800 bg-slate-950/80 text-slate-600 cursor-not-allowed'
+              ? 'bg-gradient-to-b from-cyan-950 via-slate-900 to-black border-cyan-400/90 text-cyan-200 hover:scale-110 active:scale-95 shadow-[0_0_20px_rgba(34,211,238,0.4)] cursor-pointer'
+              : 'bg-slate-950 border-slate-800 text-slate-600 opacity-50 cursor-not-allowed'
           }`}
-          title="Pass turn without taking an action"
+          title="Pass turn to next player"
           aria-label="Pass Turn"
         >
-          <div className="absolute inset-1 rounded-full border border-dashed border-cyan-400/40 pointer-events-none" />
-          <span className="font-['Cinzel'] font-black text-[10px] sm:text-[11px] tracking-wider uppercase drop-shadow">
+          <span className="font-['Cinzel'] font-bold text-[9px] sm:text-[10px] tracking-wider uppercase text-cyan-300">
             END
           </span>
           <span className="font-['Cinzel'] font-black text-[10px] sm:text-[11px] tracking-wider uppercase drop-shadow text-amber-300">
@@ -443,7 +681,7 @@ export default function App() {
         </button>
       </div>
 
-      {/* Bottom Tableau: Player's Permanent Engine, Token Pouch, and Reserved Cards */}
+      {/* Bottom Tableau */}
       <BottomPlayerTableau
         player={humanPlayer}
         isMyTurn={isHumanTurn}
@@ -452,21 +690,19 @@ export default function App() {
         onOpenHistory={() => setIsHistoryOpen(true)}
         onOpenRules={() => setIsRulesOpen(true)}
         deckCounts={{
-          1: state.decks[1].length,
-          2: state.decks[2].length,
-          3: state.decks[3].length,
+          1: soloState.decks[1].length,
+          2: soloState.decks[2].length,
+          3: soloState.decks[3].length,
         }}
       />
 
       {/* Modals & Overlays */}
       <RulesModal isOpen={isRulesOpen} onClose={() => setIsRulesOpen(false)} />
-
       <ActionHistoryModal
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
-        logs={state.log}
+        logs={soloState.log}
       />
-
       <GameSettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
@@ -477,15 +713,24 @@ export default function App() {
         }}
       />
 
-      {state.pendingTokenDiscard && state.pendingTokenDiscard.playerIndex === 0 && (
+      {soloState.pendingTokenDiscard && soloState.pendingTokenDiscard.playerIndex === 0 && (
         <DiscardTokensModal
           player={humanPlayer}
-          countToDiscard={state.pendingTokenDiscard.countToDiscard}
+          countToDiscard={soloState.pendingTokenDiscard.countToDiscard}
           onConfirmDiscard={handleConfirmDiscard}
         />
       )}
 
-      <GameOverModal state={state} onRestart={() => handleResetGame()} />
+      <GameOverModal state={soloState} onRestart={() => handleResetGame()} />
+
+      {celebratingNoble && (
+        <NobleClaimCelebration
+          noble={celebratingNoble.noble}
+          playerName={celebratingNoble.playerName}
+          isHuman={celebratingNoble.isHuman}
+          onComplete={() => setCelebratingNoble(null)}
+        />
+      )}
     </div>
   );
 }

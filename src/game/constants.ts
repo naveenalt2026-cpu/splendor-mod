@@ -70,7 +70,11 @@ export const TOKEN_COLORS: Record<TokenType, {
   glow: string;
   ring: string;
 }> = {
-  ...GEM_COLORS,
+  ruby: { ...GEM_COLORS.ruby, ring: 'border-red-400' },
+  sapphire: { ...GEM_COLORS.sapphire, ring: 'border-blue-400' },
+  emerald: { ...GEM_COLORS.emerald, ring: 'border-emerald-400' },
+  diamond: { ...GEM_COLORS.diamond, ring: 'border-slate-200' },
+  onyx: { ...GEM_COLORS.onyx, ring: 'border-slate-500' },
   gold: {
     name: 'Gold (Wild)',
     primary: '#f59e0b',

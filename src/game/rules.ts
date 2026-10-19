@@ -588,6 +588,11 @@ export function checkNobleVisits(state: GameState, playerIndex: number): GameSta
     ...state,
     nobles: remainingNobles,
     players: updatedPlayers,
+    claimedNobleEvent: {
+      noble: visitingNoble,
+      playerIndex,
+      playerName: player.name,
+    },
     log: [logEntry, ...state.log],
   };
 }

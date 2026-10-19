@@ -4,7 +4,7 @@ import { ALL_GEMS, ALL_TOKENS, GEM_COLORS, TOKEN_COLORS } from '../game/constant
 import { GemIcon } from './GemIcon.tsx';
 import { DevelopmentCardView } from './DevelopmentCardView.tsx';
 import { calculateBonuses, checkCardAffordability } from '../game/rules.ts';
-import { History, Shield, Sparkles, BookOpen } from 'lucide-react';
+import { History, Shield, Sparkles, BookOpen, Crown, Check, X } from 'lucide-react';
 
 interface BottomPlayerTableauProps {
   player: Player;
@@ -27,6 +27,7 @@ export const BottomPlayerTableau: React.FC<BottomPlayerTableauProps> = ({
 }) => {
   const [selectedReservedCardId, setSelectedReservedCardId] = useState<string | null>(null);
   const [showDeckReserveMenu, setShowDeckReserveMenu] = useState(false);
+  const [confirmingMenuTier, setConfirmingMenuTier] = useState<1 | 2 | 3 | null>(null);
 
   const bonuses = calculateBonuses(player.cards);
   const totalTokens = Object.values(player.tokens).reduce((acc, c) => acc + c, 0);
@@ -120,6 +121,50 @@ export const BottomPlayerTableau: React.FC<BottomPlayerTableauProps> = ({
           </div>
         </div>
 
+        {/* Claimed Noble Patrons Display Shelf (Always visible in tableau) */}
+        <div
+          id="player-claimed-nobles"
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl border transition-all ${
+            player.nobles.length > 0
+              ? 'bg-amber-950/60 border-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.45)] ring-1 ring-amber-400/50'
+              : 'bg-black/50 border-slate-800/80 opacity-80'
+          }`}
+          title={
+            player.nobles.length > 0
+              ? `${player.nobles.length} Noble Patron(s) claimed: +${player.nobles.length * 3} VP`
+              : 'No Noble Patrons claimed yet (worth 3 VP each)'
+          }
+        >
+          <div className="flex flex-col items-center pr-1.5 border-r border-slate-700/60">
+            <span className="font-['Cinzel'] font-black text-amber-300 text-[10px] uppercase tracking-wider flex items-center gap-0.5">
+              <Crown size={12} className="text-amber-400" />
+              Patrons
+            </span>
+            <span className="text-[10px] text-amber-200 font-bold">
+              +{player.nobles.length * 3} VP
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 min-w-[32px]">
+            {player.nobles.length === 0 ? (
+              <span className="text-[10px] text-slate-500 font-['Cinzel'] px-1">0 / 3</span>
+            ) : (
+              player.nobles.map(n => (
+                <div
+                  key={n.id}
+                  className="relative group w-8 h-8 rounded-lg bg-slate-900 border-2 border-amber-300 flex items-center justify-center text-base shadow hover:scale-115 transition-transform cursor-pointer"
+                  title={`${n.name}: awards 3 VP`}
+                >
+                  <span>{n.avatar}</span>
+                  <span className="absolute -bottom-1 -right-1 bg-amber-400 text-slate-950 text-[9px] font-black px-1 rounded-full shadow">
+                    3
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
         {/* Right: Reserved Cards Drawer & Action Buttons */}
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Reserved cards trigger & count */}
@@ -179,24 +224,53 @@ export const BottomPlayerTableau: React.FC<BottomPlayerTableauProps> = ({
 
               {/* Tier deck selection dropdown */}
               {showDeckReserveMenu && (
-                <div className="absolute bottom-full right-0 mb-2 w-48 p-2 rounded-xl bg-slate-950 border border-amber-500/60 shadow-2xl flex flex-col gap-1.5 z-50">
+                <div className="absolute bottom-full right-0 mb-2 w-52 p-2 rounded-xl bg-slate-950 border border-amber-500/60 shadow-2xl flex flex-col gap-1.5 z-50">
                   <div className="text-[11px] font-['Cinzel'] font-bold text-amber-200 text-center pb-1 border-b border-slate-800">
                     Blind Deck Reserve (+1 Gold)
                   </div>
                   {([3, 2, 1] as const).map(tier => (
-                    <button
-                      key={tier}
-                      type="button"
-                      disabled={deckCounts[tier] === 0}
-                      onClick={() => {
-                        onReserveDeck(tier);
-                        setShowDeckReserveMenu(false);
-                      }}
-                      className="w-full py-1 px-2 rounded bg-slate-900 hover:bg-amber-950 text-slate-200 hover:text-amber-200 text-xs font-semibold flex items-center justify-between border border-slate-800 disabled:opacity-40"
-                    >
-                      <span>Tier {tier} Deck</span>
-                      <span className="text-[10px] text-amber-400">({deckCounts[tier]} left)</span>
-                    </button>
+                    confirmingMenuTier === tier ? (
+                      <div
+                        key={tier}
+                        className="w-full py-1 px-1.5 rounded bg-amber-950/80 border border-amber-400 flex items-center justify-between gap-1 text-xs animate-fade-in"
+                      >
+                        <span className="font-['Cinzel'] font-bold text-amber-200 text-[10px]">
+                          T{tier}? (+1🪙)
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onReserveDeck(tier);
+                              setConfirmingMenuTier(null);
+                              setShowDeckReserveMenu(false);
+                            }}
+                            className="px-1.5 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-['Cinzel'] font-bold text-[10px] flex items-center gap-0.5 cursor-pointer"
+                          >
+                            <Check size={11} />
+                            <span>YES</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmingMenuTier(null)}
+                            className="px-1 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] cursor-pointer"
+                          >
+                            <X size={11} />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        key={tier}
+                        type="button"
+                        disabled={deckCounts[tier] === 0}
+                        onClick={() => setConfirmingMenuTier(tier)}
+                        className="w-full py-1 px-2 rounded bg-slate-900 hover:bg-amber-950 text-slate-200 hover:text-amber-200 text-xs font-semibold flex items-center justify-between border border-slate-800 disabled:opacity-40 cursor-pointer"
+                      >
+                        <span>Tier {tier} Deck</span>
+                        <span className="text-[10px] text-amber-400">({deckCounts[tier]} left)</span>
+                      </button>
+                    )
                   ))}
                 </div>
               )}

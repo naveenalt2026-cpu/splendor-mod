@@ -2,6 +2,7 @@ import React from 'react';
 import { CardAffordability, DevelopmentCard, GemType } from '../types/game.ts';
 import { GEM_COLORS } from '../game/constants.ts';
 import { GemIcon } from './GemIcon.tsx';
+import { Check, X } from 'lucide-react';
 
 interface DevelopmentCardViewProps {
   card: DevelopmentCard;
@@ -30,6 +31,13 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
 }) => {
   const gemColor = GEM_COLORS[card.gemBonus];
   const canAfford = affordability?.canAfford ?? false;
+  const [isConfirmingReserve, setIsConfirmingReserve] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isSelected) {
+      setIsConfirmingReserve(false);
+    }
+  }, [isSelected]);
 
   // Tier border styling & metallic sheen
   const tierBorder =
@@ -173,19 +181,53 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
             </button>
 
             {!isReservedCard && (
-              <button
-                type="button"
-                onClick={onReserve}
-                disabled={!canReserve}
-                className={`w-full py-1.5 px-2 rounded-lg font-['Cinzel'] font-bold text-xs tracking-wider uppercase shadow-xl transition-all flex items-center justify-center gap-1 ${
-                  canReserve
-                    ? 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-amber-100 cursor-pointer active:scale-95 shadow-amber-950/80 ring-2 ring-amber-400'
-                    : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
-                }`}
-              >
-                <span>RESERVE</span>
-                <span className="text-[10px] text-amber-300">(+1 Gold)</span>
-              </button>
+              isConfirmingReserve ? (
+                <div className="flex items-center gap-1 w-full animate-fade-in">
+                  <button
+                    type="button"
+                    onClick={e => {
+                      e.stopPropagation();
+                      setIsConfirmingReserve(false);
+                      onReserve && onReserve();
+                    }}
+                    className="flex-1 py-1.5 px-2 rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-['Cinzel'] font-black text-[11px] tracking-wider uppercase shadow-xl transition-all flex items-center justify-center gap-1 cursor-pointer active:scale-95 ring-2 ring-amber-300"
+                    title="Confirm reserving this card into your private hand"
+                    aria-label={`Confirm reserve ${card.name}`}
+                  >
+                    <Check size={13} className="text-slate-950 stroke-[3]" />
+                    <span>CONFIRM?</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={e => {
+                      e.stopPropagation();
+                      setIsConfirmingReserve(false);
+                    }}
+                    className="py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-['Cinzel'] text-xs flex items-center justify-center shadow transition-all cursor-pointer"
+                    title="Cancel"
+                    aria-label="Cancel reserve"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={e => {
+                    e.stopPropagation();
+                    setIsConfirmingReserve(true);
+                  }}
+                  disabled={!canReserve}
+                  className={`w-full py-1.5 px-2 rounded-lg font-['Cinzel'] font-bold text-xs tracking-wider uppercase shadow-xl transition-all flex items-center justify-center gap-1 ${
+                    canReserve
+                      ? 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-amber-100 cursor-pointer active:scale-95 shadow-amber-950/80 ring-2 ring-amber-400'
+                      : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+                  }`}
+                >
+                  <span>RESERVE</span>
+                  <span className="text-[10px] text-amber-300">(+1 Gold)</span>
+                </button>
+              )
             )}
           </div>
         </div>
