@@ -485,7 +485,7 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
         <aside
           className={`relative flex flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-[#070B14]/95 border border-amber-500/20 shadow-2xl backdrop-blur-md shrink-0 z-10 w-full ${
             state.nobles.length > 1
-              ? 'max-w-[288px] xl:max-w-[308px]'
+              ? 'max-w-[296px] xl:max-w-[316px]'
               : 'max-w-[170px] xl:max-w-[180px]'
           } justify-self-center lg:justify-self-end`}
           aria-label="Noble Patrons Dais"
