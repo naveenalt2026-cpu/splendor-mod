@@ -2,7 +2,7 @@ import React from 'react';
 import { CardAffordability, DevelopmentCard, GemType } from '../types/game.ts';
 import { GEM_COLORS } from '../game/constants.ts';
 import { GemIcon } from './GemIcon.tsx';
-import { Check, X } from 'lucide-react';
+import { Check, RotateCcw, X } from 'lucide-react';
 
 interface DevelopmentCardViewProps {
   card: DevelopmentCard;
@@ -143,29 +143,49 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
           }}
           title="Click card to flip back"
         >
-          {/* Top-right flip back / close button */}
-          <button
-            type="button"
-            onClick={e => {
-              e.stopPropagation();
-              onSelect?.();
-            }}
-            className="absolute top-1.5 right-1.5 p-1 rounded-full text-slate-400 hover:text-amber-200 hover:bg-white/10 transition-colors cursor-pointer z-30"
-            title="Flip back"
-            aria-label="Flip back"
-          >
-            <X size={12} />
-          </button>
+          {/* Header Row: Points/Tier & Gem Bonus on Left, Flip-back X on Right */}
+          <div className="w-full flex items-center justify-between gap-1 pb-1 border-b border-white/8 shrink-0">
+            <div className="flex items-center gap-1.5 min-w-0">
+              {card.prestigePoints > 0 ? (
+                <div className="flex items-baseline gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/35 shrink-0">
+                  <span className="font-['Cinzel'] font-black text-amber-300 text-xs leading-none">
+                    {card.prestigePoints}
+                  </span>
+                  <span className="text-[8px] text-amber-400 font-bold leading-none">VP</span>
+                </div>
+              ) : (
+                <span className="text-[9px] font-mono text-slate-400 font-bold px-1.5 py-0.5 rounded bg-white/5 shrink-0">
+                  T{card.tier}
+                </span>
+              )}
+              <div className="flex items-center gap-1 shrink-0">
+                <GemIcon type={card.gemBonus} size="xs" variant="gem" />
+                <span className="text-[9px] text-slate-400 font-medium capitalize truncate">{card.gemBonus}</span>
+              </div>
+            </div>
 
-          <div className="text-center mt-1 px-4">
-            <span className="font-['Cinzel'] font-bold text-xs text-amber-200 block truncate">
+            <button
+              type="button"
+              onClick={e => {
+                e.stopPropagation();
+                onSelect?.();
+              }}
+              className="p-1 rounded-md text-slate-400 hover:text-amber-200 hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+              title="Flip back"
+              aria-label="Flip back"
+            >
+              <X size={12} />
+            </button>
+          </div>
+
+          {/* Card Title Row: Dedicated line with full card width and zero overlap */}
+          <div className="w-full min-w-0 text-center px-1 my-0.5 shrink-0">
+            <span
+              className="font-['Cinzel'] font-bold text-[11px] text-amber-200 block truncate leading-tight"
+              title={card.name}
+            >
               {card.name}
             </span>
-            <div className="flex items-center justify-center gap-1.5 mt-0.5">
-              <span className="text-[10px] text-amber-300 font-bold">+{card.prestigePoints} VP</span>
-              <span className="text-[10px] text-slate-500">•</span>
-              <GemIcon type={card.gemBonus} size="xs" variant="gem" />
-            </div>
           </div>
 
           <div className="flex flex-col gap-1.5 w-full">
@@ -244,8 +264,9 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
             )}
 
             {!compact && (
-              <div className="text-center pt-0.5">
-                <span className="text-[9px] text-slate-500 hover:text-slate-300 font-['Cinzel'] tracking-wider">
+              <div className="flex items-center justify-center gap-1 pt-0.5 text-slate-500 hover:text-slate-300 transition-colors">
+                <RotateCcw size={9} />
+                <span className="text-[9px] font-['Cinzel'] tracking-wider">
                   Tap card to flip back
                 </span>
               </div>
