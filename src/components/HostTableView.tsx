@@ -206,10 +206,10 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
 
       {/* Main Playing Arena: 3 Columns (Left: Nobles Dais | Center: Cards Arena | Right: Scoreboard) */}
       <main className="relative flex-1 max-w-[1536px] w-full mx-auto py-2.5 sm:py-3.5 flex flex-col lg:grid lg:grid-cols-[1fr_auto_1fr] items-center lg:items-start justify-center gap-4 lg:gap-6 z-10 overflow-y-auto">
-        {/* Left Column: Noble Patrons Dais (Zero overflow, 2x2 grid when 4+ nobles) */}
+        {/* Left Column: Noble Patrons Dais (Zero overflow, 2 in 1st row & 1 centered in 2nd row when 3 nobles) */}
         <aside
           className={`relative flex flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-[#121826]/90 border border-white/8 shadow-xl backdrop-blur-md shrink-0 z-10 w-full ${
-            publicState.nobles.length > 3
+            publicState.nobles.length > 1
               ? 'max-w-[280px] xl:max-w-[300px]'
               : 'max-w-[170px] xl:max-w-[180px]'
           } justify-self-center lg:justify-self-end`}
@@ -234,19 +234,36 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
           ) : (
             <div
               className={`w-full gap-2 ${
-                publicState.nobles.length > 3
+                publicState.nobles.length > 1
                   ? 'grid grid-cols-2'
                   : 'flex flex-col'
               }`}
             >
-              {publicState.nobles.map(noble => (
-                <NobleTileView
-                  key={noble.id}
-                  noble={noble}
-                  compact={true}
-                  className="w-full"
-                />
-              ))}
+              {publicState.nobles.map((noble, index) => {
+                const isSingleLastInRow =
+                  publicState.nobles.length > 1 &&
+                  index === publicState.nobles.length - 1 &&
+                  publicState.nobles.length % 2 === 1;
+
+                return (
+                  <div
+                    key={noble.id}
+                    className={
+                      isSingleLastInRow
+                        ? 'col-span-2 flex justify-center w-full'
+                        : 'w-full'
+                    }
+                  >
+                    <NobleTileView
+                      noble={noble}
+                      compact={true}
+                      className={
+                        isSingleLastInRow ? 'w-[calc(50%-4px)]' : 'w-full'
+                      }
+                    />
+                  </div>
+                );
+              })}
             </div>
           )}
         </aside>
