@@ -237,14 +237,14 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
       <main className="relative flex-1 max-w-[1536px] w-full mx-auto py-2.5 sm:py-3.5 flex flex-col lg:grid lg:grid-cols-[1fr_auto_1fr] items-center lg:items-start justify-center gap-4 lg:gap-6 z-10 overflow-y-auto">
         {/* Left Column: Noble Patrons Dais (Zero overflow, 2 in 1st row & 1 centered in 2nd row when 3 nobles) */}
         <aside
-          className={`relative flex flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-[#121826]/90 border border-white/8 shadow-xl backdrop-blur-md shrink-0 z-10 w-full ${
+          className={`relative flex flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-[#070B14]/95 border border-amber-500/20 shadow-2xl backdrop-blur-md shrink-0 z-10 w-full ${
             publicState.nobles.length > 1
               ? 'max-w-[288px] xl:max-w-[308px]'
               : 'max-w-[170px] xl:max-w-[180px]'
           } justify-self-center lg:justify-self-end`}
           aria-label="Noble Patrons Dais"
         >
-          <div className="flex items-center justify-between gap-1.5 mb-2 pb-2 border-b border-white/10 w-full px-1 shrink-0">
+          <div className="flex items-center justify-between gap-1.5 mb-2 pb-2 border-b border-amber-500/20 w-full px-1 shrink-0">
             <div className="flex items-center gap-1.5">
               <Shield size={14} className="text-amber-400" />
               <span className="font-['Cinzel'] font-bold text-xs uppercase tracking-wider text-amber-200">
@@ -309,21 +309,21 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
             const tierStyle =
               tier === 3
                 ? {
-                    border: 'border-amber-500/30',
-                    bg: 'bg-[#121826]',
+                    border: 'border-amber-500/40',
+                    bg: 'bg-gradient-to-b from-amber-950/40 via-[#141C2C] to-[#0E1522]',
                     badge: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
                     label: 'T3',
                   }
                 : tier === 2
                 ? {
-                    border: 'border-sky-500/30',
-                    bg: 'bg-[#121826]',
+                    border: 'border-sky-500/40',
+                    bg: 'bg-gradient-to-b from-sky-950/40 via-[#141C2C] to-[#0E1522]',
                     badge: 'bg-sky-500/20 text-sky-300 border-sky-500/40',
                     label: 'T2',
                   }
                 : {
-                    border: 'border-emerald-500/30',
-                    bg: 'bg-[#121826]',
+                    border: 'border-emerald-500/40',
+                    bg: 'bg-gradient-to-b from-emerald-950/40 via-[#141C2C] to-[#0E1522]',
                     badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
                     label: 'T1',
                   };

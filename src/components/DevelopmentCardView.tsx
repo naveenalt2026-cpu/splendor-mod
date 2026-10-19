@@ -48,7 +48,7 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
         compact
           ? 'w-24 sm:w-28 h-40 sm:h-44 p-2'
           : 'w-28 sm:w-30 md:w-32 lg:w-[134px] xl:w-[140px] h-48 sm:h-52 md:h-56 lg:h-[216px] xl:h-[224px] p-2.5 sm:p-3'
-      } bg-[#121826] border border-white/8 shadow-md hover:shadow-xl hover:border-white/20 ${
+      } bg-gradient-to-b from-[#1A2538] via-[#141D2C] to-[#0E1522] border border-white/12 shadow-lg hover:border-white/25 ${
         isSelected
           ? 'ring-2 ring-amber-400 scale-[1.03] z-30 shadow-[0_0_25px_rgba(245,158,11,0.35)]'
           : canAfford

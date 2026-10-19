@@ -42,10 +42,10 @@ export const NobleTileView: React.FC<NobleTileViewProps> = ({
         compact
           ? 'w-full max-w-[170px] h-[150px] sm:h-[156px] p-2 sm:p-2.5'
           : 'w-30 sm:w-34 h-[175px] sm:h-[185px] p-2.5'
-      } bg-[#121826] border shadow-md ${
+      } bg-gradient-to-b from-[#1E293B] via-[#162132] to-[#101726] border shadow-lg ${
         isSatisfied
           ? 'border-amber-400 ring-2 ring-amber-400/80 shadow-[0_0_20px_rgba(245,158,11,0.35)] scale-[1.02]'
-          : 'border-white/8 hover:border-white/20'
+          : 'border-slate-700/80 hover:border-amber-400/50 hover:shadow-xl'
       } ${className}`}
       title={`${noble.name}: awards ${noble.prestigePoints} Prestige Points. Requirements: ${reqEntries
         .map(([g, c]) => `${c} ${g}`)

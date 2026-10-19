@@ -592,13 +592,13 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
           <div className="flex flex-col gap-4">
             {/* Nobles Horizontal Carousel at Top */}
             {publicState.nobles.length > 0 && (
-              <section className="p-3.5 rounded-2xl bg-[#121826] border border-white/8 shadow-md">
-                <div className="flex items-center justify-between mb-2.5">
+              <section className="p-3.5 rounded-2xl bg-[#070B14]/95 border border-amber-500/20 shadow-md">
+                <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-amber-500/20">
                   <span className="font-['Cinzel'] font-bold text-xs text-amber-200 uppercase tracking-wide flex items-center gap-1.5">
                     <Shield size={14} className="text-amber-400" />
                     <span>Noble Patrons ({publicState.nobles.length})</span>
                   </span>
-                  <span className="text-[10px] text-slate-400">+3 VP on bonus match</span>
+                  <span className="text-[10px] text-amber-300/80 font-mono">+3 VP on bonus match</span>
                 </div>
 
                 <div className="flex gap-2.5 overflow-x-auto pb-1 items-stretch">
