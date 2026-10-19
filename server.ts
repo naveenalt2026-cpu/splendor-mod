@@ -1,9 +1,32 @@
 import express from 'express';
 import http from 'http';
 import path from 'path';
+import os from 'os';
 import { WebSocketServer, WebSocket } from 'ws';
 import { sessionManager } from './src/server/sessionManager.ts';
 import { ClientMessage } from './src/types/multiplayer.ts';
+
+export function getLocalNetworkIp(): string {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    if (name.toLowerCase().includes('vmware') || name.toLowerCase().includes('vethernet') || name.toLowerCase().includes('virtual')) {
+      continue;
+    }
+    for (const net of interfaces[name] || []) {
+      if (net.family === 'IPv4' && !net.internal && !net.address.startsWith('169.254')) {
+        return net.address;
+      }
+    }
+  }
+  for (const name of Object.keys(interfaces)) {
+    for (const net of interfaces[name] || []) {
+      if (net.family === 'IPv4' && !net.internal && !net.address.startsWith('169.254')) {
+        return net.address;
+      }
+    }
+  }
+  return 'localhost';
+}
 
 const app = express();
 const server = http.createServer(app);
@@ -49,9 +72,15 @@ wss.on('connection', (ws: WebSocket, req) => {
           boundSessionId = session.sessionId;
           isHost = true;
 
-          const hostHeader = req.headers.host || `localhost:${PORT}`;
+          let effectiveHost = req.headers.host || `localhost:${PORT}`;
+          if (effectiveHost.startsWith('localhost') || effectiveHost.startsWith('127.0.0.1')) {
+            const lanIp = getLocalNetworkIp();
+            if (lanIp !== 'localhost') {
+              effectiveHost = effectiveHost.replace(/^(localhost|127\.0\.0\.1)/, lanIp);
+            }
+          }
           const proto = req.headers['x-forwarded-proto'] || 'http';
-          const joinUrl = `${proto}://${hostHeader}/?session=${session.sessionId}&role=player`;
+          const joinUrl = `${proto}://${effectiveHost}/?session=${session.sessionId}&role=player`;
 
           ws.send(
             JSON.stringify({
@@ -192,7 +221,10 @@ async function startServer() {
   }
 
   server.listen(Number(PORT), '0.0.0.0', () => {
-    console.log(`Splendor Multiplayer Server running on port ${PORT}`);
+    const lanIp = getLocalNetworkIp();
+    console.log(`Splendor Multiplayer Server running:`);
+    console.log(`  > Local:   http://localhost:${PORT}`);
+    console.log(`  > Network: http://${lanIp}:${PORT}`);
   });
 }
 
