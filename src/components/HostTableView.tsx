@@ -62,10 +62,14 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
 
       // Play relevant action sound if sound enabled
       if (soundEnabled) {
-        if (latestLog.action === 'buy_card') sound.playBuyCard();
-        else if (latestLog.action === 'take_tokens') sound.playTakeToken();
-        else if (latestLog.action === 'reserve_card') sound.playReserveCard();
-        else if (latestLog.action === 'noble_visit') sound.playNobleVisit();
+        try {
+          if (latestLog.action === 'buy_card') sound.playBuyCard();
+          else if (latestLog.action === 'take_tokens') sound.playTokenPickup();
+          else if (latestLog.action === 'reserve_card') sound.playReserveCard();
+          else if (latestLog.action === 'noble_visit') sound.playNobleVisit();
+        } catch {
+          // Ignore sound playback errors
+        }
       }
 
       setTurnActionPopup(latestLog);

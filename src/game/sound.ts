@@ -92,6 +92,10 @@ class SoundEngine {
     }
   }
 
+  public playTakeToken() {
+    this.playTokenPickup();
+  }
+
   public playTokenDrop() {
     if (this.isMuted) return;
     this.initCtx();
