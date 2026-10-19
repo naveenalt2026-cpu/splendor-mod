@@ -1,16 +1,45 @@
-import React, { useEffect, useState } from 'react';
-import { Crown, Smartphone, Tv, Users } from 'lucide-react';
+import React, { useEffect, useState, Suspense } from 'react';
+import { Crown, Smartphone, Tv, Users, Loader2 } from './components/FastIcons.tsx';
 import { useMultiplayerSocket } from './hooks/useMultiplayerSocket.ts';
-import { HostLobbyView } from './components/HostLobbyView.tsx';
-import { HostTableView } from './components/HostTableView.tsx';
-import { MobilePlayerView } from './components/MobilePlayerView.tsx';
-import { MobileJoinScreen } from './components/MobileJoinScreen.tsx';
-import { MobileLobbyWaiting } from './components/MobileLobbyWaiting.tsx';
-import { MobileReconnectingScreen } from './components/MobileReconnectingScreen.tsx';
-import { SoloTableView } from './components/SoloTableView.tsx';
 import { LandingBackground } from './components/LandingBackground.tsx';
 import { ambientMusic } from './game/ambientMusic.ts';
 import { getStoredHostSession, getStoredPlayerSession } from './utils/sessionStorage.ts';
+
+// Dynamic Code Splitting: Lazy load heavy game views on demand
+// Eliminates module evaluation overhead and main thread blocking on initial load
+const HostLobbyView = React.lazy(() =>
+  import('./components/HostLobbyView.tsx').then((m) => ({ default: m.HostLobbyView }))
+);
+const HostTableView = React.lazy(() =>
+  import('./components/HostTableView.tsx').then((m) => ({ default: m.HostTableView }))
+);
+const MobilePlayerView = React.lazy(() =>
+  import('./components/MobilePlayerView.tsx').then((m) => ({ default: m.MobilePlayerView }))
+);
+const MobileJoinScreen = React.lazy(() =>
+  import('./components/MobileJoinScreen.tsx').then((m) => ({ default: m.MobileJoinScreen }))
+);
+const MobileLobbyWaiting = React.lazy(() =>
+  import('./components/MobileLobbyWaiting.tsx').then((m) => ({ default: m.MobileLobbyWaiting }))
+);
+const MobileReconnectingScreen = React.lazy(() =>
+  import('./components/MobileReconnectingScreen.tsx').then((m) => ({ default: m.MobileReconnectingScreen }))
+);
+const SoloTableView = React.lazy(() =>
+  import('./components/SoloTableView.tsx').then((m) => ({ default: m.SoloTableView }))
+);
+
+const ViewLoadingFallback: React.FC = () => (
+  <div className="min-h-screen bg-[#0B0F1A] text-slate-100 flex flex-col items-center justify-center p-6 text-center select-none font-sans">
+    <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.25)] mb-3 animate-pulse">
+      <Crown size={28} className="stroke-[2.5]" />
+    </div>
+    <div className="flex items-center gap-2 text-amber-200 font-['Cinzel'] font-bold text-sm tracking-wider">
+      <Loader2 size={16} className="text-amber-400" />
+      <span>Loading Table...</span>
+    </div>
+  </div>
+);
 
 type AppMode = 'choose_mode' | 'host' | 'player' | 'solo';
 
@@ -78,36 +107,38 @@ export default function App() {
   // ROUTE 1: Dedicated Host View (Central Shared Board on TV/Tablet)
   // -------------------------------------------------------------
   if (mode === 'host') {
-    // If game has not started yet, show Host Lobby with Large QR Code
     if (!publicState || publicState.status === 'lobby') {
       return (
-        <HostLobbyView
-          sessionId={sessionId || 'INITIALIZING...'}
-          joinUrl={joinUrl || `${window.location.origin}/?session=${sessionId || ''}&role=player`}
-          players={lobbyPlayers}
-          canStart={canStart}
-          onStartGame={startHostGame}
-          onAddAI={() => addAIPlayer('medium')}
+        <Suspense fallback={<ViewLoadingFallback />}>
+          <HostLobbyView
+            sessionId={sessionId || 'INITIALIZING...'}
+            joinUrl={joinUrl || `${window.location.origin}/?session=${sessionId || ''}&role=player`}
+            players={lobbyPlayers}
+            canStart={canStart}
+            onStartGame={startHostGame}
+            onAddAI={() => addAIPlayer('medium')}
+            onCreateNewRoom={() => createNewHostRoom(15)}
+            onExitHost={() => {
+              closeHostSession();
+              setMode('choose_mode');
+            }}
+          />
+        </Suspense>
+      );
+    }
+
+    return (
+      <Suspense fallback={<ViewLoadingFallback />}>
+        <HostTableView
+          publicState={publicState}
+          onRestartMatch={restartHostGame}
           onCreateNewRoom={() => createNewHostRoom(15)}
           onExitHost={() => {
             closeHostSession();
             setMode('choose_mode');
           }}
         />
-      );
-    }
-
-    // Permanent "Table View" (Central Shared Board)
-    return (
-      <HostTableView
-        publicState={publicState}
-        onRestartMatch={restartHostGame}
-        onCreateNewRoom={() => createNewHostRoom(15)}
-        onExitHost={() => {
-          closeHostSession();
-          setMode('choose_mode');
-        }}
-      />
+      </Suspense>
     );
   }
 
@@ -115,83 +146,87 @@ export default function App() {
   // ROUTE 2: Mobile Player View (Personal handheld controller)
   // -------------------------------------------------------------
   if (mode === 'player') {
-    // If currently reconnecting to a known session, display sleek Reconnection Screen
     if (
       (isReconnecting || (storedPlayerSession && !publicState)) &&
       (sessionId || storedPlayerSession?.sessionId)
     ) {
       return (
-        <MobileReconnectingScreen
-          sessionId={sessionId || storedPlayerSession?.sessionId || ''}
-          playerName={storedPlayerSession?.playerName || 'Player'}
-          avatar={storedPlayerSession?.avatar || '👑'}
-          errorMessage={errorMessage}
-          onCancel={() => {
-            leaveSession();
-            setMode('choose_mode');
-          }}
-          onManualRetry={reconnectManual}
-        />
+        <Suspense fallback={<ViewLoadingFallback />}>
+          <MobileReconnectingScreen
+            sessionId={sessionId || storedPlayerSession?.sessionId || ''}
+            playerName={storedPlayerSession?.playerName || 'Player'}
+            avatar={storedPlayerSession?.avatar || '👑'}
+            errorMessage={errorMessage}
+            onCancel={() => {
+              leaveSession();
+              setMode('choose_mode');
+            }}
+            onManualRetry={reconnectManual}
+          />
+        </Suspense>
       );
     }
 
-    // If not connected to a session yet, show Mobile Join Screen
     if (!myPlayerId || !publicState || myPlayerIndex === null) {
       return (
-        <MobileJoinScreen
-          initialSessionId={sessionParam || sessionId || ''}
-          onJoin={(sCode, name, avatar) => {
-            joinSession(sCode, name, avatar);
-          }}
-          onSwitchToHost={() => setMode('host')}
-        />
+        <Suspense fallback={<ViewLoadingFallback />}>
+          <MobileJoinScreen
+            initialSessionId={sessionParam || sessionId || ''}
+            onJoin={(sCode, name, avatar) => {
+              joinSession(sCode, name, avatar);
+            }}
+            onSwitchToHost={() => setMode('host')}
+          />
+        </Suspense>
       );
     }
 
-    // If game has not started yet, show Mobile Lobby Waiting screen
     if (publicState.status === 'lobby') {
       const myPlayer = publicState.players[myPlayerIndex];
       return (
-        <MobileLobbyWaiting
-          sessionId={publicState.sessionId}
-          myPlayerName={myPlayer?.name || 'Player'}
-          myAvatar={myPlayer?.avatar || '👑'}
+        <Suspense fallback={<ViewLoadingFallback />}>
+          <MobileLobbyWaiting
+            sessionId={publicState.sessionId}
+            myPlayerName={myPlayer?.name || 'Player'}
+            myAvatar={myPlayer?.avatar || '👑'}
+            myPlayerIndex={myPlayerIndex}
+            lobbyPlayers={
+              lobbyPlayers.length > 0
+                ? lobbyPlayers
+                : publicState.players.map((p, idx) => ({
+                    id: p.id,
+                    name: p.name,
+                    avatar: p.avatar,
+                    isAI: p.isAI,
+                    connected: p.connected,
+                    playerIndex: idx,
+                  }))
+            }
+            onLeave={() => {
+              leaveSession();
+              setMode('choose_mode');
+            }}
+          />
+        </Suspense>
+      );
+    }
+
+    return (
+      <Suspense fallback={<ViewLoadingFallback />}>
+        <MobilePlayerView
+          publicState={publicState}
+          privateState={privateState}
+          myPlayerId={myPlayerId}
           myPlayerIndex={myPlayerIndex}
-          lobbyPlayers={
-            lobbyPlayers.length > 0
-              ? lobbyPlayers
-              : publicState.players.map((p, idx) => ({
-                  id: p.id,
-                  name: p.name,
-                  avatar: p.avatar,
-                  isAI: p.isAI,
-                  connected: p.connected,
-                  playerIndex: idx,
-                }))
-          }
-          onLeave={() => {
+          onSendAction={sendGameAction}
+          errorMessage={errorMessage}
+          isConnected={isConnected}
+          onLeaveGame={() => {
             leaveSession();
             setMode('choose_mode');
           }}
         />
-      );
-    }
-
-    // Handheld focused player interface during active match
-    return (
-      <MobilePlayerView
-        publicState={publicState}
-        privateState={privateState}
-        myPlayerId={myPlayerId}
-        myPlayerIndex={myPlayerIndex}
-        onSendAction={sendGameAction}
-        errorMessage={errorMessage}
-        isConnected={isConnected}
-        onLeaveGame={() => {
-          leaveSession();
-          setMode('choose_mode');
-        }}
-      />
+      </Suspense>
     );
   }
 
@@ -201,8 +236,8 @@ export default function App() {
   if (mode === 'choose_mode') {
     return (
       <div className="min-h-screen bg-[#0B0F1A] text-slate-100 flex flex-col items-center justify-center p-4 sm:p-6 select-none relative overflow-hidden font-sans">
-        {/* Animated 3D Gems, Golden Stardust, Volumetric Light Rays & Video Background */}
-        <LandingBackground defaultMode="combined" />
+        {/* Animated 3D Gems, Golden Stardust & Ambient Background */}
+        <LandingBackground defaultMode="canvas" />
 
         <div className="w-full max-w-xl p-6 sm:p-8 rounded-3xl bg-[#121826]/90 border border-amber-400/30 shadow-[0_25px_70px_rgba(0,0,0,0.85),0_0_40px_rgba(245,158,11,0.18)] backdrop-blur-xl flex flex-col items-center text-center relative z-10 transition-all">
           {/* Subtle Top Golden Accent Line */}
@@ -303,5 +338,9 @@ export default function App() {
     );
   }
 
-  return <SoloTableView onExitSolo={() => setMode('choose_mode')} />;
+  return (
+    <Suspense fallback={<ViewLoadingFallback />}>
+      <SoloTableView onExitSolo={() => setMode('choose_mode')} />
+    </Suspense>
+  );
 }

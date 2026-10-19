@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Volume2, VolumeX, Sparkles, Video, Eye, Settings2 } from 'lucide-react';
+import { Volume2, VolumeX, Sparkles, Video, Eye, Settings2 } from './FastIcons.tsx';
 import { ambientMusic } from '../game/ambientMusic.ts';
 
 export type BackgroundVisualMode = 'canvas' | 'video' | 'combined';
@@ -40,8 +40,18 @@ interface Stardust {
   color: string;
 }
 
+const STARDUST_COLORS = ['#F59E0B', '#FBBF24', '#FDE68A', '#38BDF8', '#34D399', '#FB7185'];
+const GEM_TYPES: GemParticle['type'][] = [
+  'diamond',
+  'emerald',
+  'ruby',
+  'sapphire',
+  'onyx',
+  'gold',
+];
+
 export const LandingBackground: React.FC<LandingBackgroundProps> = ({
-  defaultMode = 'combined',
+  defaultMode = 'canvas',
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -76,9 +86,9 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       }
     };
 
-    window.addEventListener('click', handleFirstInteraction, { once: true });
-    window.addEventListener('keydown', handleFirstInteraction, { once: true });
-    window.addEventListener('touchstart', handleFirstInteraction, { once: true });
+    window.addEventListener('click', handleFirstInteraction, { once: true, passive: true });
+    window.addEventListener('keydown', handleFirstInteraction, { once: true, passive: true });
+    window.addEventListener('touchstart', handleFirstInteraction, { once: true, passive: true });
 
     return () => {
       window.removeEventListener('click', handleFirstInteraction);
@@ -89,16 +99,23 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
 
   // Track mouse position for smooth 3D parallax
   useEffect(() => {
+    let animId: number;
     const handleMouseMove = (e: MouseEvent) => {
-      mousePosRef.current.targetX = (e.clientX / window.innerWidth - 0.5) * 2;
-      mousePosRef.current.targetY = (e.clientY / window.innerHeight - 0.5) * 2;
+      cancelAnimationFrame(animId);
+      animId = requestAnimationFrame(() => {
+        mousePosRef.current.targetX = (e.clientX / window.innerWidth - 0.5) * 2;
+        mousePosRef.current.targetY = (e.clientY / window.innerHeight - 0.5) * 2;
+      });
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
   }, []);
 
-  // 60FPS Canvas Animation Loop: 3D Faceted Gemstones, Golden Stardust, and Volumetric Light Rays
+  // 60FPS Zero-Allocation Canvas Animation Loop: 3D Faceted Gemstones & Golden Stardust
   useEffect(() => {
     if (visualMode === 'video') return;
 
@@ -116,25 +133,15 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
     };
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize, { passive: true });
 
-    // Initialize 3D Floating Gemstones
-    const gemTypes: GemParticle['type'][] = [
-      'diamond',
-      'emerald',
-      'ruby',
-      'sapphire',
-      'onyx',
-      'gold',
-    ];
-
-    const gemCount = window.innerWidth < 768 ? 10 : 18;
+    const gemCount = window.innerWidth < 768 ? 8 : 14;
     const gems: GemParticle[] = Array.from({ length: gemCount }, (_, i) => ({
       x: (Math.random() - 0.5) * width * 1.3,
       y: (Math.random() - 0.5) * height * 1.3,
-      z: Math.random() * 600 - 100, // Depth from -100 to 500
+      z: Math.random() * 600 - 100,
       vx: (Math.random() - 0.5) * 0.45,
-      vy: (Math.random() - 0.5) * 0.35 - 0.15, // slight upward float
+      vy: (Math.random() - 0.5) * 0.35 - 0.15,
       vz: (Math.random() - 0.5) * 0.2,
       rotX: Math.random() * Math.PI * 2,
       rotY: Math.random() * Math.PI * 2,
@@ -142,27 +149,25 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       rotSpeedX: (Math.random() - 0.5) * 0.015,
       rotSpeedY: (Math.random() - 0.5) * 0.02,
       rotSpeedZ: (Math.random() - 0.5) * 0.012,
-      size: 26 + Math.random() * 24,
-      type: gemTypes[i % gemTypes.length],
+      size: 26 + Math.random() * 22,
+      type: GEM_TYPES[i % GEM_TYPES.length],
       pulsePhase: Math.random() * Math.PI * 2,
       sparkleTimer: Math.random() * 200,
     }));
 
-    // Initialize Stardust Embers
-    const stardustCount = window.innerWidth < 768 ? 45 : 85;
-    const stardustColors = ['#F59E0B', '#FBBF24', '#FDE68A', '#38BDF8', '#34D399', '#FB7185'];
-    const stardust: Stardust[] = Array.from({ length: stardustCount }, () => ({
+    const stardustCount = window.innerWidth < 768 ? 35 : 65;
+    const stardust: Stardust[] = Array.from({ length: stardustCount }, (_, i) => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      size: 1.2 + Math.random() * 2.4,
+      size: 1.2 + Math.random() * 2.2,
       speedY: 0.25 + Math.random() * 0.65,
-      opacity: 0.1 + Math.random() * 0.7,
+      opacity: 0.15 + Math.random() * 0.65,
       twinkleSpeed: 0.02 + Math.random() * 0.04,
       twinklePhase: Math.random() * Math.PI * 2,
-      color: stardustColors[Math.floor(Math.random() * stardustColors.length)],
+      color: STARDUST_COLORS[i % STARDUST_COLORS.length],
     }));
 
-    // Helper: Draw 4-pointed specular sparkle flare
+    // Draw 4-pointed specular sparkle flare without object allocation
     const drawSparkle = (
       c: CanvasRenderingContext2D,
       x: number,
@@ -181,7 +186,6 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.quadraticCurveTo(0, 0, 0, -size);
       c.fill();
 
-      // Soft glow center
       c.fillStyle = `rgba(251, 191, 36, ${alpha * 0.6})`;
       c.beginPath();
       c.arc(0, 0, size * 0.35, 0, Math.PI * 2);
@@ -189,22 +193,13 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.restore();
     };
 
-    // Helper: Draw Faceted Diamond
+    // Draw Faceted Diamond (zero allocation)
     const drawDiamond = (c: CanvasRenderingContext2D, s: number, angle: number) => {
       c.save();
       c.rotate(angle);
+      c.shadowColor = 'rgba(186, 230, 253, 0.4)';
+      c.shadowBlur = s * 0.6;
 
-      // Outer glow
-      const glow = c.createRadialGradient(0, 0, s * 0.2, 0, 0, s * 1.5);
-      glow.addColorStop(0, 'rgba(186, 230, 253, 0.25)');
-      glow.addColorStop(1, 'transparent');
-      c.fillStyle = glow;
-      c.beginPath();
-      c.arc(0, 0, s * 1.5, 0, Math.PI * 2);
-      c.fill();
-
-      // Table & Facets
-      // Top crown
       c.fillStyle = '#E0F2FE';
       c.beginPath();
       c.moveTo(-s * 0.7, -s * 0.3);
@@ -214,7 +209,6 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.closePath();
       c.fill();
 
-      // Center pavilion
       c.fillStyle = '#38BDF8';
       c.beginPath();
       c.moveTo(-s * 0.7, -s * 0.3);
@@ -223,7 +217,6 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.closePath();
       c.fill();
 
-      // Left facet
       c.fillStyle = '#0284C7';
       c.beginPath();
       c.moveTo(-s * 0.7, -s * 0.3);
@@ -232,7 +225,6 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.closePath();
       c.fill();
 
-      // Right facet
       c.fillStyle = '#7DD3FC';
       c.beginPath();
       c.moveTo(s * 0.7, -s * 0.3);
@@ -241,7 +233,6 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.closePath();
       c.fill();
 
-      // Table facet
       c.fillStyle = '#FFFFFF';
       c.beginPath();
       c.moveTo(-s * 0.3, -s * 0.65);
@@ -251,29 +242,19 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.closePath();
       c.fill();
 
-      // Specular edge highlights
       c.strokeStyle = 'rgba(255, 255, 255, 0.85)';
       c.lineWidth = 1.2;
       c.stroke();
-
       c.restore();
     };
 
-    // Helper: Draw Faceted Emerald
+    // Draw Faceted Emerald (zero allocation)
     const drawEmerald = (c: CanvasRenderingContext2D, s: number, angle: number) => {
       c.save();
       c.rotate(angle);
+      c.shadowColor = 'rgba(16, 185, 129, 0.45)';
+      c.shadowBlur = s * 0.7;
 
-      // Emerald green halo
-      const glow = c.createRadialGradient(0, 0, s * 0.3, 0, 0, s * 1.6);
-      glow.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
-      glow.addColorStop(1, 'transparent');
-      c.fillStyle = glow;
-      c.beginPath();
-      c.arc(0, 0, s * 1.6, 0, Math.PI * 2);
-      c.fill();
-
-      // Octagonal body
       const w = s * 0.75;
       const h = s * 0.95;
       const cut = s * 0.25;
@@ -291,7 +272,6 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.closePath();
       c.fill();
 
-      // Step facets
       c.fillStyle = '#059669';
       c.beginPath();
       c.moveTo(-w + cut * 1.5, -h + cut * 0.8);
@@ -301,13 +281,11 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.closePath();
       c.fill();
 
-      // Center table
       c.fillStyle = '#34D399';
       c.beginPath();
       c.rect(-w * 0.5, -h * 0.45, w, h * 0.9);
       c.fill();
 
-      // Bright specular reflection corner
       c.fillStyle = '#A7F3D0';
       c.beginPath();
       c.moveTo(-w * 0.45, -h * 0.4);
@@ -322,21 +300,13 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.restore();
     };
 
-    // Helper: Draw Faceted Ruby
+    // Draw Faceted Ruby (zero allocation)
     const drawRuby = (c: CanvasRenderingContext2D, s: number, angle: number) => {
       c.save();
       c.rotate(angle);
+      c.shadowColor = 'rgba(244, 63, 94, 0.45)';
+      c.shadowBlur = s * 0.7;
 
-      // Crimson aura
-      const glow = c.createRadialGradient(0, 0, s * 0.2, 0, 0, s * 1.6);
-      glow.addColorStop(0, 'rgba(244, 63, 94, 0.35)');
-      glow.addColorStop(1, 'transparent');
-      c.fillStyle = glow;
-      c.beginPath();
-      c.arc(0, 0, s * 1.6, 0, Math.PI * 2);
-      c.fill();
-
-      // Hexagonal cushion
       c.fillStyle = '#9F1239';
       c.beginPath();
       for (let i = 0; i < 6; i++) {
@@ -349,7 +319,6 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.closePath();
       c.fill();
 
-      // Facet triangulation
       for (let i = 0; i < 6; i++) {
         const rad1 = (i * Math.PI) / 3;
         const rad2 = ((i + 1) * Math.PI) / 3;
@@ -362,7 +331,6 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
         c.fill();
       }
 
-      // Center table
       c.fillStyle = '#FDA4AF';
       c.beginPath();
       for (let i = 0; i < 6; i++) {
@@ -381,21 +349,13 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.restore();
     };
 
-    // Helper: Draw Faceted Sapphire
+    // Draw Faceted Sapphire (zero allocation)
     const drawSapphire = (c: CanvasRenderingContext2D, s: number, angle: number) => {
       c.save();
       c.rotate(angle);
+      c.shadowColor = 'rgba(59, 130, 246, 0.45)';
+      c.shadowBlur = s * 0.7;
 
-      // Royal blue halo
-      const glow = c.createRadialGradient(0, 0, s * 0.2, 0, 0, s * 1.5);
-      glow.addColorStop(0, 'rgba(59, 130, 246, 0.35)');
-      glow.addColorStop(1, 'transparent');
-      c.fillStyle = glow;
-      c.beginPath();
-      c.arc(0, 0, s * 1.5, 0, Math.PI * 2);
-      c.fill();
-
-      // Rhombus diamond cut
       c.fillStyle = '#1E3A8A';
       c.beginPath();
       c.moveTo(0, -s * 0.95);
@@ -405,7 +365,6 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.closePath();
       c.fill();
 
-      // Top triangle facet
       c.fillStyle = '#3B82F6';
       c.beginPath();
       c.moveTo(0, -s * 0.95);
@@ -415,7 +374,6 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.closePath();
       c.fill();
 
-      // Bottom left facet
       c.fillStyle = '#2563EB';
       c.beginPath();
       c.moveTo(-s * 0.8, 0);
@@ -424,7 +382,6 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.closePath();
       c.fill();
 
-      // Specular sheen
       c.fillStyle = '#93C5FD';
       c.beginPath();
       c.moveTo(0, -s * 0.95);
@@ -439,27 +396,18 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.restore();
     };
 
-    // Helper: Draw Faceted Onyx
+    // Draw Faceted Onyx (zero allocation)
     const drawOnyx = (c: CanvasRenderingContext2D, s: number, angle: number) => {
       c.save();
       c.rotate(angle);
+      c.shadowColor = 'rgba(71, 85, 105, 0.4)';
+      c.shadowBlur = s * 0.6;
 
-      // Deep obsidian aura
-      const glow = c.createRadialGradient(0, 0, s * 0.2, 0, 0, s * 1.4);
-      glow.addColorStop(0, 'rgba(71, 85, 105, 0.3)');
-      glow.addColorStop(1, 'transparent');
-      c.fillStyle = glow;
-      c.beginPath();
-      c.arc(0, 0, s * 1.4, 0, Math.PI * 2);
-      c.fill();
-
-      // Stepped square cabochon
       c.fillStyle = '#0F172A';
       c.beginPath();
       c.rect(-s * 0.7, -s * 0.7, s * 1.4, s * 1.4);
       c.fill();
 
-      // Top facet
       c.fillStyle = '#1E293B';
       c.beginPath();
       c.moveTo(-s * 0.7, -s * 0.7);
@@ -469,7 +417,6 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.closePath();
       c.fill();
 
-      // Right facet
       c.fillStyle = '#334155';
       c.beginPath();
       c.moveTo(s * 0.7, -s * 0.7);
@@ -479,7 +426,6 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.closePath();
       c.fill();
 
-      // Center table with metallic sheen
       c.fillStyle = '#475569';
       c.beginPath();
       c.rect(-s * 0.4, -s * 0.4, s * 0.8, s * 0.8);
@@ -491,45 +437,33 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.restore();
     };
 
-    // Helper: Draw Renaissance Gold Coin
+    // Draw Renaissance Gold Coin (zero allocation)
     const drawGoldCoin = (c: CanvasRenderingContext2D, s: number, angle: number) => {
       c.save();
       c.rotate(angle);
+      c.shadowColor = 'rgba(245, 158, 11, 0.5)';
+      c.shadowBlur = s * 0.8;
 
-      // Warm golden halo
-      const glow = c.createRadialGradient(0, 0, s * 0.3, 0, 0, s * 1.7);
-      glow.addColorStop(0, 'rgba(245, 158, 11, 0.45)');
-      glow.addColorStop(1, 'transparent');
-      c.fillStyle = glow;
-      c.beginPath();
-      c.arc(0, 0, s * 1.7, 0, Math.PI * 2);
-      c.fill();
-
-      // Gold base
-      const grad = c.createLinearGradient(-s, -s, s, s);
-      grad.addColorStop(0, '#FDE68A');
-      grad.addColorStop(0.3, '#F59E0B');
-      grad.addColorStop(0.7, '#D97706');
-      grad.addColorStop(1, '#92400E');
-
-      c.fillStyle = grad;
+      c.fillStyle = '#D97706';
       c.beginPath();
       c.arc(0, 0, s * 0.85, 0, Math.PI * 2);
       c.fill();
 
-      // Outer rim
+      c.fillStyle = '#F59E0B';
+      c.beginPath();
+      c.arc(0, 0, s * 0.78, 0, Math.PI * 2);
+      c.fill();
+
       c.strokeStyle = '#FEF3C7';
       c.lineWidth = 2;
       c.stroke();
 
-      // Inner engraved border
       c.strokeStyle = 'rgba(120, 53, 15, 0.5)';
       c.lineWidth = 1.2;
       c.beginPath();
       c.arc(0, 0, s * 0.65, 0, Math.PI * 2);
       c.stroke();
 
-      // Center emblem (Crown silhouette)
       c.fillStyle = '#FFFBEB';
       c.beginPath();
       const cs = s * 0.4;
@@ -542,64 +476,17 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       c.lineTo(-cs * 0.7, cs * 0.6);
       c.closePath();
       c.fill();
-
       c.restore();
     };
 
-    // Volumetric God Rays
-    let rayAngle = 0;
-
     // Render loop
     const render = () => {
-      // Smooth mouse easing
       const target = mousePosRef.current;
       target.x += (target.targetX - target.x) * 0.05;
       target.y += (target.targetY - target.y) * 0.05;
 
-      // Clear with dark ambient canvas
+      // Clear canvas (background vignette is styled with CSS to eliminate heap allocation)
       ctx.clearRect(0, 0, width, height);
-
-      // Deep atmospheric vignette
-      const bgGrad = ctx.createRadialGradient(
-        width * 0.5 + target.x * 60,
-        height * 0.45 + target.y * 40,
-        100,
-        width * 0.5,
-        height * 0.5,
-        Math.max(width, height) * 0.85
-      );
-      bgGrad.addColorStop(0, '#10172A');
-      bgGrad.addColorStop(0.5, '#0B0F1A');
-      bgGrad.addColorStop(1, '#05070D');
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, width, height);
-
-      // Sweeping volumetric god rays
-      rayAngle += 0.003;
-      ctx.save();
-      ctx.globalCompositeOperation = 'screen';
-      for (let i = 0; i < 3; i++) {
-        const offset = i * 1.8 + Math.sin(rayAngle) * 0.3;
-        const rayGrad = ctx.createLinearGradient(
-          width * 0.2 + Math.cos(offset) * 200,
-          0,
-          width * 0.6 + Math.sin(offset) * 300,
-          height
-        );
-        rayGrad.addColorStop(0, 'rgba(245, 158, 11, 0.06)');
-        rayGrad.addColorStop(0.5, 'rgba(217, 119, 6, 0.03)');
-        rayGrad.addColorStop(1, 'transparent');
-
-        ctx.fillStyle = rayGrad;
-        ctx.beginPath();
-        ctx.moveTo(width * 0.1 + i * 140, 0);
-        ctx.lineTo(width * 0.35 + i * 180, 0);
-        ctx.lineTo(width * 0.8 + i * 100, height);
-        ctx.lineTo(width * 0.4 + i * 80, height);
-        ctx.closePath();
-        ctx.fill();
-      }
-      ctx.restore();
 
       // Render Golden Stardust
       stardust.forEach((p) => {
@@ -613,13 +500,11 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
         }
 
         const currentOpacity = p.opacity * (0.6 + Math.sin(p.twinklePhase) * 0.4);
-        ctx.save();
         ctx.fillStyle = p.color;
         ctx.globalAlpha = Math.max(0, Math.min(1, currentOpacity));
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
-        ctx.restore();
       });
 
       // Render 3D Floating Gemstones with Parallax and Perspective
@@ -627,11 +512,9 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
       const centerX = width * 0.5;
       const centerY = height * 0.5;
 
-      // Sort gems by Z for correct depth buffering
       gems.sort((a, b) => b.z - a.z);
 
       gems.forEach((gem) => {
-        // Move gem
         gem.x += gem.vx;
         gem.y += gem.vy;
         gem.z += gem.vz;
@@ -641,7 +524,6 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
         gem.pulsePhase += 0.02;
         gem.sparkleTimer += 1;
 
-        // Wrap around boundaries
         const boundX = width * 0.7;
         const boundY = height * 0.7;
         if (gem.x < -boundX) gem.x = boundX;
@@ -651,21 +533,18 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
         if (gem.z < -100) gem.z = 500;
         if (gem.z > 500) gem.z = -100;
 
-        // 3D Perspective Projection + Mouse Parallax
         const parallaxFactor = (500 - gem.z) / 500;
         const depthScale = fov / (fov + gem.z);
         const screenX = centerX + gem.x * depthScale + target.x * 50 * parallaxFactor;
         const screenY = centerY + gem.y * depthScale + target.y * 35 * parallaxFactor;
         const currentSize = gem.size * depthScale;
 
-        // Gem alpha increases with proximity to camera
         const alpha = Math.max(0.35, Math.min(1, (600 - gem.z) / 500));
 
         ctx.save();
         ctx.globalAlpha = alpha;
         ctx.translate(screenX, screenY);
 
-        // Draw gem based on type
         switch (gem.type) {
           case 'diamond':
             drawDiamond(ctx, currentSize, gem.rotZ);
@@ -687,7 +566,6 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
             break;
         }
 
-        // Periodic specular sparkle on corner
         if (gem.sparkleTimer % 180 < 35) {
           const sparkleProgress = (gem.sparkleTimer % 180) / 35;
           const sparkleSize = Math.sin(sparkleProgress * Math.PI) * currentSize * 0.6;
@@ -697,6 +575,7 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
         ctx.restore();
       });
 
+      ctx.globalAlpha = 1;
       animationFrameId = requestAnimationFrame(render);
     };
 
@@ -714,8 +593,11 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
 
   return (
     <div className="fixed inset-0 pointer-events-none select-none overflow-hidden z-0">
-      {/* 1. Optional Ambient Video Background */}
-      {(visualMode === 'video' || visualMode === 'combined') && !videoError && (
+      {/* CSS-driven hardware-accelerated deep vignette (zero JS memory allocation) */}
+      <div className="absolute inset-0 bg-radial from-[#10172A] via-[#0B0F1A] to-[#05070D] pointer-events-none" />
+
+      {/* 1. Optional Ambient Video Background (mounted on-demand only) */}
+      {(visualMode === 'video' || visualMode === 'combined') && !videoError && customVideoUrl && (
         <video
           ref={videoRef}
           autoPlay
@@ -726,10 +608,7 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
             visualMode === 'combined' ? 'opacity-35 mix-blend-screen' : 'opacity-70'
           }`}
-          src={
-            customVideoUrl ||
-            'https://raw.githubusercontent.com/intel-iot-devkit/sample-videos/master/person-bicycle-car-detection.mp4'
-          }
+          src={customVideoUrl}
         />
       )}
 
@@ -738,12 +617,11 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full block" />
       )}
 
-      {/* 3. Deep Vignette Overlay */}
+      {/* 3. Outer Radial Vignette */}
       <div className="absolute inset-0 bg-radial from-transparent via-[#0B0F1A]/50 to-[#05070D]/90 pointer-events-none" />
 
       {/* 4. Elegant Top-Right Audio & Visual Controls */}
       <div className="absolute top-3.5 right-3.5 sm:top-5 sm:right-5 z-40 flex items-center gap-2 pointer-events-auto">
-        {/* Renaissance Theme Music Toggle Button */}
         <button
           type="button"
           onClick={toggleMusic}
@@ -777,7 +655,6 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
           )}
         </button>
 
-        {/* Visual FX Mode Switcher */}
         <div className="relative">
           <button
             type="button"
@@ -852,7 +729,6 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
                 {visualMode === 'video' && <span className="text-[10px]">●</span>}
               </button>
 
-              {/* Custom Video URL input */}
               <div className="pt-2 border-t border-white/10 flex flex-col gap-1">
                 <label className="text-[10px] text-slate-400">Custom MP4 Video URL:</label>
                 <input
@@ -871,7 +747,7 @@ export const LandingBackground: React.FC<LandingBackgroundProps> = ({
         </div>
       </div>
 
-      {/* 5. Subconscious Autoplay Prompt for Browsers Blocking Audio */}
+      {/* 5. Autoplay Prompt for Browsers Blocking Audio */}
       {!hasInteracted && !isMusicMuted && (
         <div className="absolute bottom-4 inset-x-0 flex justify-center z-40 pointer-events-auto animate-bounce">
           <button
