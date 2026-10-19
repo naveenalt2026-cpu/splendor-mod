@@ -51,6 +51,7 @@ import {
   Layers,
   ArrowRight,
   Bookmark,
+  Zap,
 } from 'lucide-react';
 
 interface SoloTableViewProps {
@@ -664,78 +665,80 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
 
         {/* Right Column: Player Game Details Scoreboard matching HostTableView */}
         <aside
-          className="relative flex flex-col gap-2 w-full max-w-[270px] xl:max-w-[300px] shrink-0 z-10 justify-self-center lg:justify-self-start"
+          className="relative flex flex-col gap-2.5 w-full max-w-[320px] xl:max-w-[350px] 2xl:max-w-[380px] shrink-0 z-10 justify-self-center lg:justify-self-start"
           aria-label="Players Scoreboard"
         >
-          <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-[#121826]/80 border border-white/8 shrink-0">
+          <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-[#070B14]/95 border border-amber-500/20 shadow-md shrink-0">
             <div className="flex items-center gap-1.5">
-              <Crown size={14} className="text-amber-400" />
-              <span className="font-['Cinzel'] font-bold text-xs uppercase tracking-wider text-amber-200">
+              <Crown size={16} className="text-amber-400" />
+              <span className="font-['Cinzel'] font-bold text-xs sm:text-sm uppercase tracking-wider text-amber-200">
                 Scoreboard
               </span>
             </div>
-            <span className="text-[10px] text-slate-400 font-mono">
-              Target: <b className="text-amber-300 font-mono">{state.targetVP}</b> VP
+            <span className="text-xs text-slate-300 font-mono">
+              Target: <b className="text-amber-300 font-mono text-sm">{state.targetVP}</b> VP
             </span>
           </div>
 
           {/* Player Cards (Human + AI Opponents) */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2.5">
             {state.players.map((p, idx) => {
               const isActive = state.activePlayerIndex === idx;
               const isHuman = idx === 0;
               const bonuses = calculateBonuses(p.cards);
+              const totalBonuses = Object.values(bonuses).reduce((a, b) => a + b, 0);
+              const totalTokens = Object.values(p.tokens).reduce((acc, c) => acc + c, 0);
 
               return (
                 <div
                   key={p.id || idx}
-                  className={`p-2.5 rounded-2xl border transition-all ${
+                  className={`p-3 rounded-2xl border transition-all ${
                     isActive
-                      ? 'bg-[#121826] border-amber-400/80 shadow-[0_0_18px_rgba(245,158,11,0.25)] ring-1 ring-amber-400/30'
-                      : 'bg-[#121826]/80 border-white/6 shadow-sm hover:border-white/15'
+                      ? 'bg-[#141D2E] border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
+                      : 'bg-[#0C121E] border-white/8 shadow-md opacity-95 hover:opacity-100'
                   }`}
                 >
                   {/* Player Header: Avatar, Name, VP score badge & Reserved Cards button */}
-                  <div className="flex items-center justify-between gap-2 mb-2 pb-1.5 border-b border-white/6">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-lg filter drop-shadow shrink-0">{p.avatar}</span>
+                  <div className="flex items-center justify-between gap-2.5 mb-2.5 pb-2 border-b border-white/5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-2xl sm:text-3xl filter drop-shadow shrink-0">{p.avatar}</span>
                       <div className="min-w-0">
-                        <div className="font-['Cinzel'] font-bold text-xs text-white truncate flex items-center gap-1.5">
-                          <span>{p.name}</span>
+                        <div className="font-['Cinzel'] font-bold text-sm sm:text-base text-white truncate flex items-center gap-1.5">
+                          <span className={isActive ? 'text-amber-300 font-black' : 'text-white'}>{p.name}</span>
                           {isHuman && (
-                            <span className="text-[9px] bg-amber-400/20 text-amber-300 border border-amber-400/40 px-1 rounded-sm uppercase font-mono font-bold">
+                            <span className="text-[10px] bg-amber-400/20 text-amber-300 border border-amber-400/40 px-1.5 py-0.5 rounded-sm uppercase font-mono font-bold">
                               You
                             </span>
                           )}
                         </div>
-                        <div className="text-[10px] text-slate-400 flex items-center gap-1.5">
+                        <div className="text-xs text-slate-300 font-mono flex items-center gap-1.5 mt-0.5">
                           {isActive ? (
                             <span className="text-amber-300 font-semibold flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                               Turn
                             </span>
                           ) : (
-                            <span>Waiting</span>
+                            <span className="text-slate-400">Waiting</span>
                           )}
 
                           {/* Reserved cards badge / button */}
                           {p.reservedCards.length > 0 && (
                             <>
-                              <span>•</span>
+                              <span className="text-white/20">•</span>
                               {isHuman ? (
                                 <button
                                   type="button"
                                   onClick={() => setIsReservedDrawerOpen(true)}
-                                  className="text-amber-300 hover:text-amber-200 underline font-semibold flex items-center gap-0.5 cursor-pointer"
+                                  className="text-amber-300 hover:text-amber-200 font-bold bg-amber-500/15 px-1.5 py-0.5 rounded border border-amber-500/30 flex items-center gap-1 cursor-pointer transition-colors"
                                   title="View your reserved cards"
                                 >
-                                  <Bookmark size={10} />
-                                  <span>{p.reservedCards.length} Reserved</span>
+                                  <Bookmark size={11} />
+                                  <span>{p.reservedCards.length} Res</span>
                                 </button>
                               ) : (
-                                <span className="text-slate-400 flex items-center gap-0.5">
-                                  <Bookmark size={10} />
-                                  <span>{p.reservedCards.length} Reserved</span>
+                                <span className="text-amber-300/80 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 flex items-center gap-1">
+                                  <Bookmark size={11} />
+                                  <span>{p.reservedCards.length} Res</span>
                                 </span>
                               )}
                             </>
@@ -745,20 +748,38 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
                     </div>
 
                     {/* VP Score Badge */}
-                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 shrink-0">
-                      <Crown size={12} className="text-amber-400" />
-                      <span className="font-['Cinzel'] font-black text-amber-300 text-xs sm:text-sm">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-br from-amber-500/25 to-yellow-500/15 border border-amber-500/40 shrink-0 shadow-sm">
+                      <Crown size={16} className="text-amber-400" />
+                      <span className="font-['Cinzel'] font-black text-amber-300 text-base sm:text-lg leading-none">
                         {p.prestigePoints}
                       </span>
-                      <span className="text-[9px] text-amber-400/70 font-medium">
+                      <span className="text-xs font-mono font-bold text-amber-400/80 leading-none">
                         /{state.targetVP}
                       </span>
                     </div>
                   </div>
 
                   {/* UNIFIED BUYING POWER GRID (Tokens + Discounts in one box) */}
-                  <div className="w-full">
-                    <div className="grid grid-cols-6 gap-1 w-full">
+                  <div className="bg-[#070B14]/80 rounded-xl p-2 sm:p-2.5 border border-white/6 w-full">
+                    <div className="flex items-center justify-between text-xs mb-1.5 px-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <Zap size={14} className="text-amber-400" />
+                        <span className="text-slate-200 font-bold uppercase tracking-wider font-['Cinzel'] text-xs">
+                          Buying Power
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs font-mono">
+                        <span className={totalTokens > 8 ? 'text-amber-400 font-bold' : 'text-slate-300'} title="Tokens in hand / 10 max limit">
+                          {totalTokens}/10<span className="text-[9px] text-slate-400 ml-0.5">tok</span>
+                        </span>
+                        <span className="text-white/20">•</span>
+                        <span className="text-amber-300 font-bold" title="Permanent card bonuses">
+                          +{totalBonuses}<span className="text-[9px] text-amber-400/80 ml-0.5">disc</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-6 gap-1.5 w-full">
                       {ALL_TOKENS.map((t) => {
                         const isGold = t === 'gold';
                         const tokenCount = p.tokens[t] || 0;
@@ -769,12 +790,14 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
                         return (
                           <div
                             key={t}
-                            className={`relative flex flex-col items-center justify-between p-1 rounded-lg border transition-all ${
+                            className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition-all ${
                               hasPower
                                 ? isGold
-                                  ? 'bg-amber-950/40 border-amber-500/40 shadow-sm'
-                                  : 'bg-white/5 border-white/10 shadow-sm'
-                                : 'bg-[#0B0F1A]/60 border-white/4 opacity-40'
+                                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 shadow-sm ring-1 ring-amber-400/25'
+                                  : bonusCount > 0
+                                  ? 'bg-amber-500/10 border-amber-500/30 text-white shadow-sm ring-1 ring-amber-400/20'
+                                  : 'bg-white/8 border-white/15 text-white shadow-xs'
+                                : 'bg-white/3 border-white/5 text-slate-400 opacity-60'
                             }`}
                             title={
                               isGold
@@ -783,17 +806,17 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
                             }
                           >
                             {/* Gem Symbol with Top-Right Discount Badge */}
-                            <div className="relative flex items-center justify-center w-full mt-0.5">
+                            <div className="relative flex items-center justify-center">
                               <GemIcon
                                 type={t}
-                                size="xs"
+                                size="sm"
                                 variant={isGold ? 'chip' : 'gem'}
-                                className="w-4 h-4"
+                                className="w-6 h-6 sm:w-7 sm:h-7 shrink-0"
                               />
 
                               {/* Top-Right Discount Badge (+1, +2) */}
                               {bonusCount > 0 && (
-                                <span className="absolute -top-1.5 -right-1 px-0.8 py-0.2 rounded-full bg-emerald-500 text-slate-950 font-mono font-black text-[9px] leading-none shadow-sm border border-emerald-300">
+                                <span className="absolute -top-1.5 -right-2 bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-mono font-black text-[9px] sm:text-[10px] leading-none px-1.5 py-0.5 rounded-full border border-amber-100 shadow-xs z-10">
                                   +{bonusCount}
                                 </span>
                               )}
@@ -801,14 +824,14 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
 
                             {/* Total Buying Power under Gem Symbol */}
                             <span
-                              className={`font-mono font-black text-xs sm:text-sm leading-none mt-1.5 ${
+                              className={`font-mono font-black text-sm sm:text-base leading-none mt-2 text-center ${
                                 hasPower
                                   ? isGold
                                     ? 'text-amber-300 font-black'
                                     : bonusCount > 0
                                     ? 'text-amber-100 font-black'
                                     : 'text-white'
-                                  : 'text-slate-600'
+                                  : 'text-slate-400'
                               }`}
                             >
                               {totalPower}
