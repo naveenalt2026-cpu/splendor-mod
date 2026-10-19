@@ -57,83 +57,77 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
 
   return (
     <div className="min-h-screen bg-[#0B0F1A] text-slate-100 flex flex-col justify-between p-3 sm:p-4 lg:p-6 select-none relative overflow-x-hidden font-sans">
-      {/* Top Header: Host Table Status & Current Player Spotlight */}
-      <header className="relative flex flex-wrap items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-[#121826] border border-white/8 shadow-xl backdrop-blur-md z-20 max-w-7xl w-full mx-auto">
-        {/* Host branding */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.25)]">
-            <Tv size={20} className="stroke-[2.5]" />
+      {/* Top Header: Slim, streamlined bar to maximize playing arena & player info space */}
+      <header className="relative flex flex-wrap items-center justify-between gap-3 px-4 py-2 rounded-xl bg-[#121826] border border-white/8 shadow-md backdrop-blur-md z-20 max-w-7xl w-full mx-auto">
+        {/* Left: Branding & Room Session */}
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-sm">
+            <Tv size={16} className="stroke-[2.5]" />
           </div>
-          <div>
-            <div className="font-['Cinzel'] font-black text-sm sm:text-base text-amber-200 tracking-wider flex items-center gap-2">
-              <span>SPLENDOR: SHARED TABLE</span>
-              <span className="text-[10px] font-mono bg-amber-500/15 border border-amber-500/30 text-amber-300 px-2 py-0.5 rounded-full font-bold">
-                {publicState.sessionId}
-              </span>
-            </div>
-            <div className="text-xs text-slate-400">
-              Target: {publicState.targetVP} Prestige Points
-            </div>
-          </div>
-        </div>
-
-        {/* Current Player Spotlight Name Plate */}
-        <div className="flex items-center gap-3 px-5 py-2 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/20 to-amber-500/10 border border-amber-400/50 shadow-[0_0_20px_rgba(245,158,11,0.25)] ring-1 ring-amber-400/30">
-          <div className="relative">
-            <span className="text-2xl sm:text-3xl filter drop-shadow">{activePlayer?.avatar || '👑'}</span>
-            <span className="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#0B0F1A] animate-pulse" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-['Cinzel'] font-black text-xs sm:text-sm text-amber-300 tracking-wider">
-              {activePlayer?.name?.toUpperCase()}'S TURN
+          <div className="flex items-center gap-2">
+            <span className="font-['Cinzel'] font-black text-xs sm:text-sm text-amber-200 tracking-wider">
+              SPLENDOR
             </span>
-            <span className="text-[10px] text-slate-400">
-              {publicState.status === 'final_round'
-                ? '⚠️ Final Round in Progress'
-                : `Round ${publicState.turnCount}`}
+            <span className="text-[10px] font-mono bg-amber-500/15 border border-amber-500/30 text-amber-300 px-2 py-0.5 rounded-full font-bold">
+              {publicState.sessionId}
+            </span>
+            <span className="hidden sm:inline text-[11px] text-slate-400 font-medium">
+              • Target: <b className="text-amber-300 font-mono">{publicState.targetVP}</b> VP
             </span>
           </div>
         </div>
 
-        {/* Utility Controls */}
-        <div className="flex items-center gap-2">
+        {/* Center: Slim Active Player Turn Capsule */}
+        <div className="flex items-center gap-2 px-3.5 py-1 rounded-full bg-gradient-to-r from-amber-500/15 via-amber-500/25 to-amber-500/15 border border-amber-400/40 shadow-sm">
+          <span className="text-lg filter drop-shadow">{activePlayer?.avatar || '👑'}</span>
+          <span className="font-['Cinzel'] font-black text-xs text-amber-300 tracking-wider">
+            {activePlayer?.name?.toUpperCase()}'S TURN
+          </span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-[10px] text-slate-400 font-mono">
+            {publicState.status === 'final_round' ? '⚠️ Final Round' : `R${publicState.turnCount}`}
+          </span>
+        </div>
+
+        {/* Right: Sleek mini utility controls */}
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={toggleSound}
-            className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/40 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/40 transition-colors cursor-pointer"
             title={soundEnabled ? 'Mute Audio' : 'Unmute Audio'}
           >
-            {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+            {soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
           </button>
           <button
             type="button"
             onClick={() => setIsRulesOpen(true)}
-            className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/40 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/40 transition-colors cursor-pointer"
             title="Splendor Rules"
           >
-            <BookOpen size={16} />
+            <BookOpen size={14} />
           </button>
           <button
             type="button"
             onClick={() => setIsHistoryOpen(true)}
-            className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/40 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/40 transition-colors cursor-pointer"
             title="Move History"
           >
-            <History size={16} />
+            <History size={14} />
           </button>
           <button
             type="button"
             onClick={onRestartMatch}
-            className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/40 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/40 transition-colors cursor-pointer"
             title="Restart Match"
           >
-            <RotateCcw size={16} />
+            <RotateCcw size={14} />
           </button>
         </div>
       </header>
 
       {/* Main Playing Arena: Clean Horizontal Layout (Left: Bank | Center: Cards | Right: Nobles) */}
-      <main className="relative flex-1 max-w-7xl w-full mx-auto py-4 sm:py-6 flex flex-col lg:flex-row items-center lg:items-start justify-between gap-4 lg:gap-6 z-10 overflow-y-auto">
+      <main className="relative flex-1 max-w-7xl w-full mx-auto py-3 sm:py-4 flex flex-col lg:flex-row items-center lg:items-start justify-between gap-4 lg:gap-6 z-10 overflow-y-auto">
         {/* Left Side: Compact Vertical Gem Bank */}
         <div className="flex lg:flex-col items-center justify-center shrink-0 w-full lg:w-auto">
           <GemChipRack
@@ -189,23 +183,15 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
 
                 {/* 4 Face-Up Cards per Tier */}
                 <div className="grid grid-cols-4 gap-2.5 sm:gap-3 flex-1">
-                  {faceUp.map(card => {
-                    // Check active player affordability for subtle green highlight glow
-                    const affordability = activePlayer
-                      ? checkCardAffordability(card, activePlayer.tokens, activeBonuses)
-                      : undefined;
-
-                    return (
-                      <div key={card.id} className="relative flex justify-center">
-                        <DevelopmentCardView
-                          card={card}
-                          affordability={affordability}
-                          disabled={true}
-                          canReserve={false}
-                        />
-                      </div>
-                    );
-                  })}
+                  {faceUp.map(card => (
+                    <div key={card.id} className="relative flex justify-center">
+                      <DevelopmentCardView
+                        card={card}
+                        disabled={false}
+                        canReserve={false}
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
             );
@@ -234,7 +220,6 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
                 <NobleTileView
                   key={noble.id}
                   noble={noble}
-                  playerBonuses={activeBonuses}
                 />
               ))
             )}
@@ -242,73 +227,113 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
         </aside>
       </main>
 
-      {/* Bottom Status Chips: All Players' Public State Overview */}
-      <footer className="w-full max-w-7xl mx-auto mt-2 pt-3 border-t border-white/8 z-20">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      {/* Bottom Players Game Info: High-Visibility Tabletop Scoreboard */}
+      <footer className="w-full max-w-7xl mx-auto mt-2 pt-3 border-t border-white/10 z-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {publicState.players.map((p, idx) => {
             const isActive = idx === publicState.activePlayerIndex;
             const bonuses = calculateBonuses(p.cards);
+            const totalBonuses = Object.values(bonuses).reduce((a, b) => a + b, 0);
             const totalTokens = Object.values(p.tokens).reduce((acc, c) => acc + c, 0);
 
             return (
               <div
                 key={p.id}
-                className={`p-3 rounded-2xl border transition-all ${
+                className={`p-3 sm:p-3.5 rounded-2xl border transition-all ${
                   isActive
-                    ? 'bg-[#121826] border-amber-400/80 ring-2 ring-amber-400/40 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
-                    : 'bg-[#121826]/70 border-white/5 opacity-85 hover:opacity-100'
+                    ? 'bg-[#151e33] border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_25px_rgba(245,158,11,0.25)]'
+                    : 'bg-[#121826] border-white/10 opacity-90 hover:opacity-100'
                 }`}
               >
-                {/* Header: Avatar, Name, VP */}
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-2xl shrink-0">{p.avatar}</span>
+                {/* Row 1: Avatar, Name, and Prestige Points */}
+                <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/5">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="relative shrink-0">
+                      <span className="text-2xl sm:text-3xl filter drop-shadow">{p.avatar}</span>
+                      {isActive && (
+                        <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#151e33] animate-pulse" />
+                      )}
+                    </div>
                     <div className="min-w-0">
                       <div className="font-['Cinzel'] font-bold text-xs sm:text-sm text-slate-100 truncate flex items-center gap-1.5">
-                        <span>{p.name}</span>
+                        <span className={isActive ? 'text-amber-300' : 'text-slate-100'}>
+                          {p.name}
+                        </span>
                         {isActive && (
-                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                          <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] font-black font-sans uppercase">
+                            TURN
+                          </span>
                         )}
                       </div>
-                      <div className="text-[10px] text-slate-400">
-                        {p.cards.length} cards • {p.reservedCardsCount} reserved
+                      <div className="text-[11px] text-slate-400 font-mono">
+                        {p.cards.length} cards {p.reservedCardsCount > 0 ? `• ${p.reservedCardsCount} reserved` : ''}
                       </div>
                     </div>
                   </div>
 
-                  {/* VP Badge */}
-                  <div className="flex items-center gap-1 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-full shrink-0">
-                    <Crown size={12} className="text-amber-400" />
-                    <span className="font-['Cinzel'] font-black text-amber-300 text-xs sm:text-sm">
+                  {/* Prestige Points Badge */}
+                  <div className="flex items-center gap-1 bg-gradient-to-br from-amber-500/20 to-yellow-500/10 border border-amber-500/40 px-2.5 py-1 rounded-xl shrink-0 shadow-sm">
+                    <Crown size={14} className="text-amber-400" />
+                    <span className="font-['Cinzel'] font-black text-amber-300 text-sm sm:text-base leading-none">
                       {p.prestigePoints}
                     </span>
-                    <span className="text-[9px] text-amber-400/70">/ {publicState.targetVP}</span>
+                    <span className="text-[10px] text-amber-400/70 font-mono leading-none">/{publicState.targetVP}</span>
                   </div>
                 </div>
 
-                {/* Tokens count */}
-                <div className="flex items-center justify-between text-[11px] bg-[#0B0F1A]/80 rounded-xl px-2 py-1 mb-1.5 border border-white/5">
-                  <span className="text-slate-400 text-[10px] font-medium">Tokens ({totalTokens}/10):</span>
-                  <div className="flex items-center gap-1.5">
-                    {ALL_TOKENS.map(t => (
-                      <div key={t} className="flex items-center gap-0.5" title={`${t}: ${p.tokens[t]}`}>
-                        <GemIcon type={t} size="xs" variant="gem" />
-                        <span className="font-mono text-[10px] font-bold text-white">{p.tokens[t]}</span>
-                      </div>
-                    ))}
+                {/* Row 2: Tokens in Hand (Bank Chips) */}
+                <div className="bg-[#0B0F1A]/80 rounded-xl p-2 mb-1.5 border border-white/5">
+                  <div className="flex items-center justify-between text-[11px] mb-1">
+                    <span className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider font-['Cinzel']">
+                      Tokens ({totalTokens}/10)
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-6 gap-1">
+                    {ALL_TOKENS.map(t => {
+                      const count = p.tokens[t] || 0;
+                      return (
+                        <div
+                          key={t}
+                          className={`flex items-center justify-center gap-1 px-1 py-0.5 rounded-lg border transition-opacity ${
+                            count > 0
+                              ? 'bg-white/5 border-white/15 text-white'
+                              : 'bg-transparent border-transparent text-slate-600 opacity-30'
+                          }`}
+                          title={`${t}: ${count}`}
+                        >
+                          <GemIcon type={t} size="xs" variant={t === 'gold' ? 'chip' : 'gem'} className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <span className="font-mono text-xs font-black">{count}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
-                {/* Engine Discounts */}
-                <div className="flex items-center justify-between text-[10px] bg-[#0B0F1A]/60 rounded-xl px-2 py-1 border border-white/5">
-                  <span className="text-slate-400 text-[10px] font-medium">Discounts:</span>
-                  <div className="flex items-center gap-1.5">
-                    {ALL_GEMS.map(g => (
-                      <div key={g} className="flex items-center gap-0.5" title={`Permanent ${g} bonus: +${bonuses[g]}`}>
-                        <GemIcon type={g} size="xs" variant="gem" />
-                        <span className="font-mono text-[10px] font-bold text-amber-300">+{bonuses[g]}</span>
-                      </div>
-                    ))}
+                {/* Row 3: Engine Discounts (Permanent Bonuses) */}
+                <div className="bg-[#0B0F1A]/60 rounded-xl p-2 border border-white/5">
+                  <div className="flex items-center justify-between text-[11px] mb-1">
+                    <span className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider font-['Cinzel']">
+                      Engine Discounts (+{totalBonuses})
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-5 gap-1">
+                    {ALL_GEMS.map(g => {
+                      const bonus = bonuses[g] || 0;
+                      return (
+                        <div
+                          key={g}
+                          className={`flex items-center justify-center gap-1 px-1 py-0.5 rounded-lg border transition-opacity ${
+                            bonus > 0
+                              ? 'bg-amber-500/15 border-amber-500/35 text-amber-300'
+                              : 'bg-transparent border-transparent text-slate-600 opacity-30'
+                          }`}
+                          title={`+${bonus} ${g} bonus`}
+                        >
+                          <GemIcon type={g} size="xs" variant="gem" className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          <span className="font-mono text-xs font-black">+{bonus}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

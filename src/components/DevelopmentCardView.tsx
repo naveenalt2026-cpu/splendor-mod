@@ -57,7 +57,7 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
       tabIndex={0}
       aria-label={`${card.name}, Tier ${card.tier}, ${card.prestigePoints} Prestige Points, provides ${card.gemBonus} bonus`}
     >
-      {/* Top Header: Prestige Points on Left, Gem Bonus Crest on Right */}
+      {/* Top Header: Prestige Points on Left, Large Gem Bonus Crest on Right */}
       <div className="flex items-center justify-between z-10">
         {card.prestigePoints > 0 ? (
           <div className="flex items-baseline gap-0.5 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30">
@@ -67,36 +67,37 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
             <span className="text-[9px] text-amber-400 font-bold leading-none">VP</span>
           </div>
         ) : (
-          <span className="text-[10px] font-mono text-slate-500 font-semibold px-1">
+          <span className="text-[10px] font-mono text-slate-500 font-bold px-1.5 py-0.5 rounded bg-white/5">
             T{card.tier}
           </span>
         )}
 
-        {/* Permanent Gem Bonus Crest */}
+        {/* Large Permanent Gem Bonus Crest (Discount Gem) */}
         <div
-          className="flex items-center gap-1 px-1.5 py-0.5 rounded-full border border-white/10 shadow-sm"
+          className="flex items-center justify-center p-1 rounded-xl border shadow-md transition-transform group-hover:scale-105"
           style={{
-            backgroundColor: `${gemColor.primary}20`,
-            boxShadow: `0 0 10px ${gemColor.glow}`,
+            backgroundColor: `${gemColor.primary}25`,
+            borderColor: `${gemColor.primary}60`,
+            boxShadow: `0 0 12px ${gemColor.glow}`,
           }}
-          title={`Permanent +1 ${gemColor.name} discount`}
+          title={`Permanent +1 discount`}
         >
-          <GemIcon type={card.gemBonus} size="xs" variant="gem" />
+          <GemIcon type={card.gemBonus} size="sm" variant="gem" />
         </div>
       </div>
 
-      {/* Center: Large illustration & readable 2-line title */}
-      <div className="flex flex-col items-center justify-center my-auto py-1 z-10 text-center">
-        <div className="text-3xl sm:text-4xl filter drop-shadow-md transform group-hover:scale-110 transition-transform duration-200">
+      {/* Center: Refined illustration & readable title (compact to make room for gems) */}
+      <div className="flex flex-col items-center justify-center my-auto py-0.5 z-10 text-center">
+        <div className="text-xl sm:text-2xl filter drop-shadow transform group-hover:scale-110 transition-transform duration-200">
           {card.illustration}
         </div>
-        <div className="font-['Cinzel'] font-semibold text-[11px] sm:text-xs text-slate-200 line-clamp-2 mt-1.5 px-1 leading-snug">
+        <div className="font-['Cinzel'] font-medium text-[10px] sm:text-[11px] text-slate-300 line-clamp-1 mt-1 px-1 leading-tight">
           {card.name}
         </div>
       </div>
 
-      {/* Bottom: Cost gems in a clean, aligned row */}
-      <div className="flex items-center justify-center gap-1 z-10 pt-1.5 border-t border-white/5">
+      {/* Bottom: Cost gems with larger gem icons & bold requirement numbers */}
+      <div className="flex items-center justify-center gap-1 sm:gap-1.5 z-10 pt-1.5 border-t border-white/5 flex-wrap">
         {(Object.entries(card.cost) as [GemType, number][]).map(([gem, cost]) => {
           if (!cost || cost <= 0) return null;
           const userBonus = affordability?.bonuses[gem] || 0;
@@ -105,15 +106,15 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
           return (
             <div
               key={gem}
-              className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold border transition-colors ${
+              className={`flex items-center gap-1 px-1.5 py-0.5 rounded-lg border shadow-xs transition-colors ${
                 isCovered
-                  ? 'bg-emerald-950/80 border-emerald-500/60 text-emerald-300'
-                  : 'bg-[#0B0F1A] border-white/10 text-slate-200'
+                  ? 'bg-emerald-950/80 border-emerald-500/70 text-emerald-300'
+                  : 'bg-[#0B0F1A] border-white/10 text-white'
               }`}
-              title={`${cost} ${gem} required (${userBonus} covered by permanent discount)`}
+              title={`${cost} required`}
             >
-              <GemIcon type={gem} size="xs" variant="gem" />
-              <span className="font-mono">{cost}</span>
+              <GemIcon type={gem} size="xs" variant="gem" className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="font-mono font-black text-xs sm:text-sm">{cost}</span>
             </div>
           );
         })}
@@ -134,9 +135,11 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
             <span className="font-['Cinzel'] font-bold text-xs text-amber-200 block truncate">
               {card.name}
             </span>
-            <span className="text-[10px] text-slate-400">
-              +{card.prestigePoints} VP • +1 {gemColor.name}
-            </span>
+            <div className="flex items-center justify-center gap-1.5 mt-0.5">
+              <span className="text-[10px] text-amber-300 font-bold">+{card.prestigePoints} VP</span>
+              <span className="text-[10px] text-slate-500">•</span>
+              <GemIcon type={card.gemBonus} size="xs" variant="gem" />
+            </div>
           </div>
 
           <div className="flex flex-col gap-1.5 w-full">

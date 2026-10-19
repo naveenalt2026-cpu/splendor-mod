@@ -66,20 +66,20 @@ export const NobleTileView: React.FC<NobleTileViewProps> = ({
           return (
             <div
               key={gem}
-              className={`flex items-center justify-between px-2 py-0.5 rounded-md text-[10px] font-bold border transition-colors ${
+              className={`flex items-center justify-between px-2 py-0.5 rounded-lg text-xs font-bold border transition-colors ${
                 met
                   ? 'bg-emerald-950/80 border-emerald-500/70 text-emerald-300'
                   : 'bg-[#0B0F1A] border-white/10 text-slate-300'
               }`}
             >
               <div className="flex items-center gap-1.5">
-                <GemIcon type={gem} size="xs" variant="gem" />
-                <span className="font-mono text-white text-xs">{count}</span>
+                <GemIcon type={gem} size="xs" variant="gem" className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="font-mono text-white text-xs sm:text-sm font-black">{count}</span>
               </div>
               {playerBonuses && (
                 <span
-                  className={`text-[9px] font-mono ${
-                    met ? 'text-emerald-400 font-bold' : 'text-slate-500'
+                  className={`text-[10px] font-mono ${
+                    met ? 'text-emerald-400 font-black' : 'text-slate-500'
                   }`}
                 >
                   {currentBonus}/{count}

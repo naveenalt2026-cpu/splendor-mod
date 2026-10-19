@@ -60,6 +60,18 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
   const totalTokens = myPlayer ? Object.values(myPlayer.tokens).reduce((acc, c) => acc + c, 0) : 0;
   const reservedCards = privateState?.reservedCards || [];
 
+  // Private affordability calculations for player's view
+  const affordableBoardCards = React.useMemo(() => {
+    if (!myPlayer) return [];
+    const allFaceUp = ([1, 2, 3] as const).flatMap(tier => publicState.faceUpCards[tier] || []);
+    return allFaceUp.filter(c => checkCardAffordability(c, myPlayer.tokens, bonuses).canAfford);
+  }, [publicState.faceUpCards, myPlayer?.tokens, bonuses]);
+
+  const affordableReservedCards = React.useMemo(() => {
+    if (!myPlayer) return [];
+    return reservedCards.filter(c => checkCardAffordability(c, myPlayer.tokens, bonuses).canAfford);
+  }, [reservedCards, myPlayer?.tokens, bonuses]);
+
   // Toggle staged gem for collection
   const handleToggleGem = (gem: GemType) => {
     sound.playTokenPickup();
@@ -162,7 +174,7 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('table')}
-            className={`py-2 px-3 rounded-xl font-['Cinzel'] font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            className={`py-2 px-3 rounded-xl font-['Cinzel'] font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
               activeTab === 'table'
                 ? 'bg-amber-400 text-slate-950 shadow-md scale-[1.01]'
                 : 'text-slate-400 hover:text-slate-200'
@@ -170,6 +182,17 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
           >
             <Tv size={15} />
             <span>Board</span>
+            {affordableBoardCards.length > 0 && (
+              <span
+                className={`px-1.5 py-0.2 rounded-full font-black text-[10px] leading-none ${
+                  activeTab === 'table'
+                    ? 'bg-slate-950 text-emerald-400'
+                    : 'bg-emerald-500 text-slate-950'
+                }`}
+              >
+                {affordableBoardCards.length}
+              </span>
+            )}
           </button>
         </div>
 
@@ -201,6 +224,25 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
       <main className="max-w-md mx-auto w-full p-4 flex-1 flex flex-col gap-4">
         {activeTab === 'personal' ? (
           <>
+            {/* Private Affordability Cue Banner in My Hand Tab */}
+            {affordableBoardCards.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('table')}
+                className="w-full py-2.5 px-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-teal-500/20 to-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs flex items-center justify-between cursor-pointer hover:bg-emerald-500/25 transition-all shadow-sm active:scale-98"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="font-semibold text-slate-200">
+                    <span className="text-emerald-300 font-bold">{affordableBoardCards.length} board card{affordableBoardCards.length > 1 ? 's' : ''}</span> affordable!
+                  </span>
+                </div>
+                <span className="font-['Cinzel'] font-bold text-[11px] text-amber-300 underline flex items-center gap-1">
+                  View on Board →
+                </span>
+              </button>
+            )}
+
             {/* Primary Action Buttons (Take Gems • Buy Card • Reserve) */}
             {isMyTurn && (
               <section className="p-3.5 rounded-2xl bg-[#121826] border border-amber-500/30 shadow-lg">
@@ -228,10 +270,15 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setActiveTab('table')}
-                    className="py-2.5 px-2 rounded-xl bg-[#0B0F1A] border border-white/10 text-slate-200 hover:border-amber-400/50 font-['Cinzel'] font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    className="py-2.5 px-2 rounded-xl bg-[#0B0F1A] border border-white/10 text-slate-200 hover:border-amber-400/50 font-['Cinzel'] font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all cursor-pointer relative"
                   >
                     <ShoppingBag size={18} />
                     <span>Buy Card</span>
+                    {affordableBoardCards.length > 0 && (
+                      <span className="text-[10px] font-mono font-bold text-emerald-400">
+                        ({affordableBoardCards.length} afford)
+                      </span>
+                    )}
                   </button>
 
                   {/* Action 3: Reserve Card / Deck */}
@@ -476,16 +523,26 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
             {([3, 2, 1] as const).map(tier => {
               const cards = publicState.faceUpCards[tier] || [];
               const deckCount = publicState.decks[tier] || 0;
+              const tierAffordable = cards.filter(c =>
+                myPlayer ? checkCardAffordability(c, myPlayer.tokens, bonuses).canAfford : false
+              ).length;
 
               return (
                 <section key={tier} className="p-3.5 rounded-2xl bg-[#121826] border border-white/8 shadow-md">
                   <div className="flex items-center justify-between mb-2.5">
-                    <span className="font-['Cinzel'] font-bold text-xs text-slate-200 flex items-center gap-1.5">
+                    <div className="flex items-center gap-2">
                       <span className="px-1.5 py-0.2 rounded-md bg-white/5 border border-white/10 text-amber-300 font-mono text-[10px]">
                         T{tier}
                       </span>
-                      <span>Tier {tier} Market</span>
-                    </span>
+                      <span className="font-['Cinzel'] font-bold text-xs text-slate-200">
+                        Tier {tier} Market
+                      </span>
+                      {tierAffordable > 0 && (
+                        <span className="px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono font-bold">
+                          {tierAffordable} affordable
+                        </span>
+                      )}
+                    </div>
                     <span className="text-[10px] font-mono text-slate-400">
                       Deck: {deckCount} cards
                     </span>
@@ -571,13 +628,13 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
               </button>
             </div>
 
-            {/* Permanent Discount Provided */}
+            {/* Permanent Discount Provided (Large gem badge, no text name) */}
             <div className="flex items-center justify-between p-3 rounded-2xl bg-[#0B0F1A] border border-white/5">
               <span className="text-xs text-slate-300 font-medium">Permanent Engine Discount:</span>
-              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
-                <GemIcon type={inspectingCard.gemBonus} size="xs" variant="gem" />
-                <span className="font-['Cinzel'] font-bold text-xs text-slate-100 capitalize">
-                  +1 {inspectingCard.gemBonus}
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/5 border border-white/10">
+                <GemIcon type={inspectingCard.gemBonus} size="sm" variant="gem" />
+                <span className="font-['Cinzel'] font-black text-sm text-amber-300">
+                  +1
                 </span>
               </div>
             </div>
@@ -608,8 +665,8 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
                       }`}
                     >
                       <div className="flex items-center gap-1.5">
-                        <GemIcon type={gem} size="xs" variant="gem" />
-                        <span className="font-bold">{cost}</span>
+                        <GemIcon type={gem} size="sm" variant="gem" />
+                        <span className="font-mono font-black text-sm">{cost}</span>
                       </div>
                       <span className="text-[10px] text-slate-400 font-mono">
                         (Disc: +{discount} | You: {playerTokens})
