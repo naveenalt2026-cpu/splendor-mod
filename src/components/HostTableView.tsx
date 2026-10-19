@@ -438,7 +438,7 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
                         return (
                           <div
                             key={t}
-                            className={`flex flex-col items-center justify-between py-1 px-0.5 rounded-lg border transition-all ${
+                            className={`flex flex-col items-center justify-center py-1.5 px-0.5 rounded-lg border transition-all ${
                               hasPower
                                 ? isGold
                                   ? 'bg-amber-500/10 border-amber-500/30 text-amber-300 shadow-xs'
@@ -450,19 +450,30 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
                             title={
                               isGold
                                 ? `Gold: ${tokenCount} Wildcard token${tokenCount === 1 ? '' : 's'}`
-                                : `${t}: ${totalPower} Total Power (${tokenCount} token${tokenCount === 1 ? '' : 's'} + ${bonusCount} discount)`
+                                : `${t}: ${totalPower} Total Buying Power (${tokenCount} token${tokenCount === 1 ? '' : 's'}${bonusCount > 0 ? ` + ${bonusCount} discount card${bonusCount === 1 ? '' : 's'}` : ''})`
                             }
                           >
-                            <GemIcon
-                              type={t}
-                              size="xs"
-                              variant={isGold ? 'chip' : 'gem'}
-                              className="w-3.5 h-3.5 shrink-0"
-                            />
+                            {/* Gem Symbol with +X Discount Badge on Top-Right */}
+                            <div className="relative flex items-center justify-center">
+                              <GemIcon
+                                type={t}
+                                size="xs"
+                                variant={isGold ? 'chip' : 'gem'}
+                                className="w-4 h-4 shrink-0"
+                              />
+                              {bonusCount > 0 && (
+                                <span
+                                  className="absolute -top-1.5 -right-2.5 bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-mono font-black text-[8px] leading-none px-1 py-0.5 rounded-full border border-amber-200/90 shadow-xs z-10"
+                                  title={`+${bonusCount} permanent discount card${bonusCount === 1 ? '' : 's'}`}
+                                >
+                                  +{bonusCount}
+                                </span>
+                              )}
+                            </div>
 
-                            {/* Total Buying Power (Hero number) */}
+                            {/* Total Buying Power under Gem Symbol */}
                             <span
-                              className={`font-mono font-black text-xs sm:text-sm leading-none my-0.5 ${
+                              className={`font-mono font-black text-xs sm:text-sm leading-none mt-1.5 ${
                                 hasPower
                                   ? isGold
                                     ? 'text-amber-300 font-black'
@@ -474,31 +485,6 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
                             >
                               {totalPower}
                             </span>
-
-                            {/* Breakdown: tokens + discount */}
-                            <div className="flex items-center justify-center gap-0.5 text-[8.5px] font-mono leading-none">
-                              {isGold ? (
-                                <span className={hasPower ? 'text-amber-400/90 font-bold uppercase text-[7.5px]' : 'text-slate-600 text-[7.5px]'}>
-                                  WILD
-                                </span>
-                              ) : (
-                                <>
-                                  <span
-                                    className={tokenCount > 0 ? 'text-slate-200 font-bold' : 'text-slate-600'}
-                                    title={`${tokenCount} tokens`}
-                                  >
-                                    {tokenCount}
-                                  </span>
-                                  <span className="text-slate-600 text-[7px]">+</span>
-                                  <span
-                                    className={bonusCount > 0 ? 'text-amber-400 font-bold' : 'text-slate-600'}
-                                    title={`+${bonusCount} discount`}
-                                  >
-                                    {bonusCount}
-                                  </span>
-                                </>
-                              )}
-                            </div>
                           </div>
                         );
                       })}

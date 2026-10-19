@@ -423,7 +423,7 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
                     return (
                       <div
                         key={token}
-                        className={`flex flex-col items-center justify-between p-1.5 sm:p-2 rounded-2xl border transition-all ${
+                        className={`flex flex-col items-center justify-center p-2 rounded-2xl border transition-all ${
                           hasPower
                             ? isGold
                               ? 'bg-amber-500/15 border-amber-500/40 shadow-sm'
@@ -442,19 +442,30 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
                         }
                         title={
                           isGold
-                            ? `Gold: ${tokenCount} Wild tokens`
-                            : `${token}: ${totalPower} Total Power (${tokenCount} tokens + ${bonusCount} permanent discount)`
+                            ? `Gold: ${tokenCount} Wildcard token${tokenCount === 1 ? '' : 's'}`
+                            : `${token}: ${totalPower} Total Buying Power (${tokenCount} token${tokenCount === 1 ? '' : 's'}${bonusCount > 0 ? ` + ${bonusCount} discount card${bonusCount === 1 ? '' : 's'}` : ''})`
                         }
                       >
-                        <GemIcon
-                          type={token}
-                          size="md"
-                          variant={isGold ? 'chip' : 'gem'}
-                        />
+                        {/* Gem Symbol with +X Discount Badge on Top-Right */}
+                        <div className="relative flex items-center justify-center">
+                          <GemIcon
+                            type={token}
+                            size="md"
+                            variant={isGold ? 'chip' : 'gem'}
+                          />
+                          {bonusCount > 0 && (
+                            <span
+                              className="absolute -top-1.5 -right-3 bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-mono font-black text-[9px] leading-none px-1.5 py-0.5 rounded-full border border-amber-200/90 shadow-sm z-10"
+                              title={`+${bonusCount} permanent discount card${bonusCount === 1 ? '' : 's'}`}
+                            >
+                              +{bonusCount}
+                            </span>
+                          )}
+                        </div>
 
-                        {/* Total Purchasing Power */}
+                        {/* Total Purchasing Power under Gem Symbol */}
                         <span
-                          className={`font-mono font-black text-base sm:text-lg my-0.5 ${
+                          className={`font-mono font-black text-base sm:text-lg mt-2 leading-none ${
                             hasPower
                               ? isGold
                                 ? 'text-amber-300'
@@ -466,31 +477,6 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
                         >
                           {totalPower}
                         </span>
-
-                        {/* Tokens + Discount breakdown pill */}
-                        <div className="flex items-center justify-center gap-0.5 text-[9.5px] sm:text-[10px] font-mono leading-none bg-black/40 px-1 py-0.5 rounded-md border border-white/5 w-full">
-                          {isGold ? (
-                            <span className={hasPower ? 'text-amber-400 font-bold uppercase text-[8.5px]' : 'text-slate-600 text-[8.5px]'}>
-                              WILD
-                            </span>
-                          ) : (
-                            <>
-                              <span
-                                className={tokenCount > 0 ? 'text-slate-200 font-bold' : 'text-slate-600'}
-                                title={`${tokenCount} tokens`}
-                              >
-                                {tokenCount}
-                              </span>
-                              <span className="text-slate-600 text-[8px]">+</span>
-                              <span
-                                className={bonusCount > 0 ? 'text-amber-400 font-bold' : 'text-slate-600'}
-                                title={`+${bonusCount} discount`}
-                              >
-                                {bonusCount}
-                              </span>
-                            </>
-                          )}
-                        </div>
                       </div>
                     );
                   })}
