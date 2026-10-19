@@ -46,6 +46,8 @@ export interface GameLogEntry {
   description: string;
   timestamp: number;
   details?: {
+    card?: DevelopmentCard;
+    noble?: NobleTile;
     tokens?: Partial<TokenCount>;
     cardId?: string;
     cardName?: string;

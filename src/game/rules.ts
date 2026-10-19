@@ -376,6 +376,7 @@ export function executeBuyCard(
     description: `${player.name} bought ${targetCard.name} (+${targetCard.prestigePoints} VP, ${targetCard.gemBonus.toUpperCase()} bonus).`,
     timestamp: Date.now(),
     details: {
+      card: targetCard,
       cardId: targetCard.id,
       cardName: targetCard.name,
       cardTier: targetCard.tier,
@@ -482,6 +483,7 @@ export function executeReserveCard(
     description: `${player.name} reserved ${cardId ? reservedCard.name : `Tier ${targetTier} card`}${goldAwarded ? ' and gained 1 Gold Joker' : ''}.`,
     timestamp: Date.now(),
     details: {
+      card: reservedCard,
       cardId: reservedCard?.id,
       cardName: reservedCard?.name,
       cardTier: (reservedCard?.tier || targetTier) as 1 | 2 | 3,
@@ -615,6 +617,7 @@ export function checkNobleVisits(state: GameState, playerIndex: number): GameSta
     description: `Noble Patron ${visitingNoble.name} awarded ${player.name} ${visitingNoble.prestigePoints} Prestige Points!`,
     timestamp: Date.now(),
     details: {
+      noble: visitingNoble,
       nobleName: visitingNoble.name,
       prestigePointsGained: visitingNoble.prestigePoints,
       playerAvatar: player.avatar,
