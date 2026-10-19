@@ -93,6 +93,56 @@ wss.on('connection', (ws: WebSocket, req) => {
           break;
         }
 
+        case 'host_reconnect': {
+          if (!data.sessionId) return;
+          const session = sessionManager.getSession(data.sessionId);
+          if (session) {
+            sessionManager.setHostSocket(session.sessionId, ws);
+            boundSessionId = session.sessionId;
+
+            let effectiveHost = req.headers.host || `localhost:${PORT}`;
+            if (effectiveHost.startsWith('localhost') || effectiveHost.startsWith('127.0.0.1')) {
+              const lanIp = getLocalNetworkIp();
+              if (lanIp !== 'localhost') {
+                effectiveHost = effectiveHost.replace(/^(localhost|127\.0\.0\.1)/, lanIp);
+              }
+            }
+            const proto = req.headers['x-forwarded-proto'] || 'http';
+            const joinUrl = `${proto}://${effectiveHost}/?session=${session.sessionId}&role=player`;
+
+            ws.send(
+              JSON.stringify({
+                type: 'session_created',
+                sessionId: session.sessionId,
+                joinUrl,
+              })
+            );
+
+            const publicState = sessionManager.getPublicState(session.sessionId);
+            if (session.status === 'lobby') {
+              sessionManager.broadcastLobbyUpdate(session.sessionId);
+            } else if (publicState) {
+              ws.send(JSON.stringify({ type: 'game_state_sync', publicState }));
+            }
+          } else {
+            ws.send(JSON.stringify({ type: 'action_error', message: 'Host session expired or not found.' }));
+          }
+          break;
+        }
+
+        case 'player_leave_session': {
+          if (data.sessionId && data.playerId) {
+            sessionManager.removePlayer(data.sessionId, data.playerId, true);
+            const session = sessionManager.getSession(data.sessionId);
+            if (session?.status === 'playing' || session?.status === 'final_round') {
+              sessionManager.broadcastToSession(data.sessionId);
+            } else {
+              sessionManager.broadcastLobbyUpdate(data.sessionId);
+            }
+          }
+          break;
+        }
+
         case 'player_join_session': {
           const result = sessionManager.addPlayer(
             data.sessionId,

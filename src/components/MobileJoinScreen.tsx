@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Crown, Sparkles, Smartphone, ArrowRight } from 'lucide-react';
+import { getStoredPlayerSession } from '../utils/sessionStorage.ts';
 
 interface MobileJoinScreenProps {
   initialSessionId: string;
@@ -15,11 +16,12 @@ export const MobileJoinScreen: React.FC<MobileJoinScreenProps> = ({
   onJoin,
   onSwitchToHost,
 }) => {
-  const [sessionId, setSessionId] = useState(initialSessionId || '');
+  const stored = getStoredPlayerSession();
+  const [sessionId, setSessionId] = useState(initialSessionId || stored?.sessionId || '');
   const [playerName, setPlayerName] = useState(
-    RENAISSANCE_NAMES[Math.floor(Math.random() * RENAISSANCE_NAMES.length)]
+    stored?.playerName || RENAISSANCE_NAMES[Math.floor(Math.random() * RENAISSANCE_NAMES.length)]
   );
-  const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0]);
+  const [selectedAvatar, setSelectedAvatar] = useState(stored?.avatar || AVATARS[0]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

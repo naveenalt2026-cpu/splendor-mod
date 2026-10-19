@@ -134,3 +134,60 @@ test('SessionManager isolates private reserved cards from public state', () => {
   assert.ok(privateP2);
   assert.equal(privateP2.reservedCards.length, 0);
 });
+
+test('SessionManager handles lobby player disconnection grace period and reconnection', () => {
+  const sm = new SessionManager();
+  const mockWs1 = {} as WebSocket;
+  const mockWs2 = {} as WebSocket;
+  const session = sm.createSession(mockWs1);
+
+  const p1 = sm.addPlayer(session.sessionId, 'Lorenzo', '👑', mockWs1) as any;
+  assert.ok(p1.player);
+
+  // Player disconnects (e.g. mobile screen locks in lobby)
+  sm.removePlayer(session.sessionId, p1.player.id, false);
+  const found = session.players.find(p => p.id === p1.player.id);
+  assert.ok(found);
+  assert.equal(found?.connected, false);
+
+  // Player unlocks mobile screen and reconnects with playerId
+  const reconnectRes = sm.addPlayer(session.sessionId, 'Lorenzo', '👑', mockWs2, p1.player.id) as any;
+  assert.equal(reconnectRes.isReconnection, true);
+  assert.equal(reconnectRes.player.id, p1.player.id);
+  assert.equal(reconnectRes.player.connected, true);
+});
+
+test('SessionManager handles active game reconnection with full state restoration', () => {
+  const sm = new SessionManager();
+  const mockWs1 = {} as WebSocket;
+  const mockWs2 = {} as WebSocket;
+  const session = sm.createSession(mockWs1);
+
+  const p1 = sm.addPlayer(session.sessionId, 'Player 1', '👑', mockWs1) as any;
+  const p2 = sm.addPlayer(session.sessionId, 'Player 2', '👸', mockWs2) as any;
+  sm.startGame(session.sessionId);
+
+  // Player 1 collects gems
+  sm.handlePlayerAction(session.sessionId, p1.player.id, {
+    type: 'take_tokens',
+    gems: ['ruby', 'sapphire', 'emerald'],
+  });
+
+  // Player 1 screen locks (socket disconnects)
+  sm.removePlayer(session.sessionId, p1.player.id, false);
+  assert.equal(session.players[0].connected, false);
+
+  // Player 1 unlocks phone and reconnects
+  const mockWsNew = {} as WebSocket;
+  const reconnectRes = sm.addPlayer(session.sessionId, 'Player 1', '👑', mockWsNew, p1.player.id) as any;
+  assert.equal(reconnectRes.isReconnection, true);
+  assert.equal(session.players[0].connected, true);
+
+  // Verify Player 1 still has their collected tokens
+  const publicState = sm.getPublicState(session.sessionId);
+  assert.ok(publicState);
+  assert.equal(publicState.players[0].tokens.ruby, 1);
+  assert.equal(publicState.players[0].tokens.sapphire, 1);
+  assert.equal(publicState.players[0].tokens.emerald, 1);
+});
+

@@ -22,10 +22,12 @@ import {
   ChevronRight,
   Info,
   Zap,
+  LogOut,
 } from 'lucide-react';
 import { sound } from '../game/sound.ts';
 import { DiscardTokensModal } from './DiscardTokensModal.tsx';
 import { NobleTileView } from './NobleTileView.tsx';
+import { useWakeLock } from '../hooks/useWakeLock.ts';
 
 interface MobilePlayerViewProps {
   publicState: PublicGameState;
@@ -34,6 +36,8 @@ interface MobilePlayerViewProps {
   myPlayerIndex: number;
   onSendAction: (action: ClientGameAction) => void;
   errorMessage: string | null;
+  isConnected?: boolean;
+  onLeaveGame?: () => void;
 }
 
 export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
@@ -43,7 +47,12 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
   myPlayerIndex,
   onSendAction,
   errorMessage,
+  isConnected = true,
+  onLeaveGame,
 }) => {
+  // Prevent mobile screen from locking/dimming during active play
+  useWakeLock(true);
+
   // Navigation tabs: 'personal' (My Hand) vs 'table' (Board)
   const [activeTab, setActiveTab] = useState<'personal' | 'table'>('personal');
   // Staged action mode - default to 'take_gems' open in My Hand
@@ -149,7 +158,17 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
               <div>
                 <div className="font-['Cinzel'] font-bold text-xs sm:text-sm text-slate-100 flex items-center gap-1.5 leading-tight">
                   <span>{myPlayer?.name || 'You'}</span>
-                  <span className="w-2 h-2 rounded-full bg-emerald-400" title="Connected" />
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      !isConnected ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'
+                    }`}
+                    title={!isConnected ? 'Reconnecting to host...' : 'Connected'}
+                  />
+                  {!isConnected && (
+                    <span className="text-[10px] text-amber-300 font-sans font-normal animate-pulse">
+                      Reconnecting...
+                    </span>
+                  )}
                 </div>
                 <div className="text-[10px] font-mono text-slate-400">
                   Room: <span className="text-amber-300 font-bold">{publicState.sessionId}</span>
@@ -157,13 +176,31 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
               </div>
             </div>
 
-            {/* VP Score Badge */}
-            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 shadow-sm shrink-0">
-              <Crown size={14} className="text-amber-400" />
-              <span className="font-['Cinzel'] font-black text-amber-300 text-xs sm:text-sm">
-                {myPlayer?.prestigePoints || 0}
-              </span>
-              <span className="text-[10px] text-amber-400/70 font-medium">/{publicState.targetVP} VP</span>
+            {/* Score & Exit buttons */}
+            <div className="flex items-center gap-2 shrink-0">
+              {/* VP Score Badge */}
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 shadow-sm">
+                <Crown size={14} className="text-amber-400" />
+                <span className="font-['Cinzel'] font-black text-amber-300 text-xs sm:text-sm">
+                  {myPlayer?.prestigePoints || 0}
+                </span>
+                <span className="text-[10px] text-amber-400/70 font-medium">/{publicState.targetVP} VP</span>
+              </div>
+
+              {onLeaveGame && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm('Leave this game and return to the main menu?')) {
+                      onLeaveGame();
+                    }
+                  }}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-white/5 border border-transparent hover:border-red-500/30 transition-all cursor-pointer"
+                  title="Leave match"
+                >
+                  <LogOut size={14} />
+                </button>
+              )}
             </div>
           </div>
 

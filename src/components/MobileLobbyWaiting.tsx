@@ -1,6 +1,7 @@
 import React from 'react';
-import { Crown, Sparkles, Tv, CheckCircle2 } from 'lucide-react';
+import { Crown, Sparkles, Tv, CheckCircle2, LogOut } from 'lucide-react';
 import { SessionPlayer } from '../types/multiplayer.ts';
+import { useWakeLock } from '../hooks/useWakeLock.ts';
 
 interface MobileLobbyWaitingProps {
   sessionId: string;
@@ -8,6 +9,7 @@ interface MobileLobbyWaitingProps {
   myAvatar: string;
   myPlayerIndex: number;
   lobbyPlayers: SessionPlayer[];
+  onLeave?: () => void;
 }
 
 export const MobileLobbyWaiting: React.FC<MobileLobbyWaitingProps> = ({
@@ -16,7 +18,10 @@ export const MobileLobbyWaiting: React.FC<MobileLobbyWaitingProps> = ({
   myAvatar,
   myPlayerIndex,
   lobbyPlayers,
+  onLeave,
 }) => {
+  // Keep screen awake while waiting in lobby
+  useWakeLock(true);
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-between p-6 select-none relative overflow-hidden">
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-80 h-80 bg-radial from-amber-500/20 via-yellow-600/5 to-transparent blur-3xl pointer-events-none" />
@@ -29,9 +34,25 @@ export const MobileLobbyWaiting: React.FC<MobileLobbyWaitingProps> = ({
             SPLENDOR LOBBY
           </span>
         </div>
-        <span className="text-xs bg-amber-950/80 border border-amber-500/50 text-amber-300 px-2 py-0.5 rounded-full font-bold">
-          {sessionId}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs bg-amber-950/80 border border-amber-500/50 text-amber-300 px-2 py-0.5 rounded-full font-bold">
+            {sessionId}
+          </span>
+          {onLeave && (
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('Leave this match lobby?')) {
+                  onLeave();
+                }
+              }}
+              className="p-1 rounded-md text-slate-400 hover:text-red-400 hover:bg-white/5 transition-colors cursor-pointer"
+              title="Leave lobby"
+            >
+              <LogOut size={14} />
+            </button>
+          )}
+        </div>
       </header>
 
       {/* Center Status Card */}

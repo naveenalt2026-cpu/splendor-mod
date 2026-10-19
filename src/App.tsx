@@ -35,6 +35,8 @@ import { HostTableView } from './components/HostTableView.tsx';
 import { MobilePlayerView } from './components/MobilePlayerView.tsx';
 import { MobileJoinScreen } from './components/MobileJoinScreen.tsx';
 import { MobileLobbyWaiting } from './components/MobileLobbyWaiting.tsx';
+import { MobileReconnectingScreen } from './components/MobileReconnectingScreen.tsx';
+import { getStoredHostSession, getStoredPlayerSession } from './utils/sessionStorage.ts';
 
 type AppMode = 'choose_mode' | 'host' | 'player' | 'solo';
 
@@ -44,14 +46,20 @@ export default function App() {
   const roleParam = urlParams.get('role');
 
   const [mode, setMode] = useState<AppMode>(() => {
+    const storedPlayer = getStoredPlayerSession();
+    const storedHost = getStoredHostSession();
     if (sessionParam && roleParam === 'player') return 'player';
     if (roleParam === 'host') return 'host';
+    if (sessionParam) return 'player';
+    if (storedPlayer && storedPlayer.sessionId) return 'player';
+    if (storedHost && storedHost.sessionId) return 'host';
     return 'choose_mode';
   });
 
   // Multiplayer WebSocket Hook
   const {
     isConnected,
+    isReconnecting,
     sessionId,
     joinUrl,
     myPlayerId,
@@ -61,8 +69,11 @@ export default function App() {
     lobbyPlayers,
     canStart,
     errorMessage,
+    storedPlayerSession,
     createHostSession,
     joinSession,
+    leaveSession,
+    reconnectManual,
     addAIPlayer,
     startHostGame,
     restartHostGame,
@@ -232,7 +243,10 @@ export default function App() {
       <HostTableView
         publicState={publicState}
         onRestartMatch={restartHostGame}
-        onExitHost={() => setMode('choose_mode')}
+        onExitHost={() => {
+          leaveSession();
+          setMode('choose_mode');
+        }}
       />
     );
   }
@@ -241,6 +255,26 @@ export default function App() {
   // ROUTE 2: Mobile Player View (Personal handheld controller)
   // -------------------------------------------------------------
   if (mode === 'player') {
+    // If currently reconnecting to a known session, display sleek Reconnection Screen
+    if (
+      (isReconnecting || (storedPlayerSession && !publicState)) &&
+      (sessionId || storedPlayerSession?.sessionId)
+    ) {
+      return (
+        <MobileReconnectingScreen
+          sessionId={sessionId || storedPlayerSession?.sessionId || ''}
+          playerName={storedPlayerSession?.playerName || 'Player'}
+          avatar={storedPlayerSession?.avatar || '👑'}
+          errorMessage={errorMessage}
+          onCancel={() => {
+            leaveSession();
+            setMode('choose_mode');
+          }}
+          onManualRetry={reconnectManual}
+        />
+      );
+    }
+
     // If not connected to a session yet, show Mobile Join Screen
     if (!myPlayerId || !publicState || myPlayerIndex === null) {
       return (
@@ -275,6 +309,10 @@ export default function App() {
                   playerIndex: idx,
                 }))
           }
+          onLeave={() => {
+            leaveSession();
+            setMode('choose_mode');
+          }}
         />
       );
     }
@@ -288,6 +326,11 @@ export default function App() {
         myPlayerIndex={myPlayerIndex}
         onSendAction={sendGameAction}
         errorMessage={errorMessage}
+        isConnected={isConnected}
+        onLeaveGame={() => {
+          leaveSession();
+          setMode('choose_mode');
+        }}
       />
     );
   }

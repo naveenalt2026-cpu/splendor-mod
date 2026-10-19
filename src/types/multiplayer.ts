@@ -68,7 +68,9 @@ export type ClientGameAction =
 
 export type ClientMessage =
   | { type: 'host_create_session'; targetVP?: number }
+  | { type: 'host_reconnect'; sessionId: string }
   | { type: 'player_join_session'; sessionId: string; playerName: string; avatar: string; playerId?: string }
+  | { type: 'player_leave_session'; sessionId: string; playerId: string }
   | { type: 'host_add_ai'; sessionId: string; difficulty?: 'easy' | 'medium' | 'hard' }
   | { type: 'host_start_game'; sessionId: string }
   | { type: 'host_restart_game'; sessionId: string }

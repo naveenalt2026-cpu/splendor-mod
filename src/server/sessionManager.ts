@@ -51,6 +51,7 @@ export interface GameSession {
 
 export class SessionManager {
   private sessions = new Map<string, GameSession>();
+  private disconnectTimers = new Map<string, NodeJS.Timeout>();
 
   // Generate friendly 6-char room code (e.g., GEM-492)
   private generateRoomCode(): string {
@@ -101,6 +102,12 @@ export class SessionManager {
     if (existingPlayerId) {
       const existing = session.players.find(p => p.id === existingPlayerId);
       if (existing) {
+        const timerKey = `${sessionId}:${existingPlayerId}`;
+        const timer = this.disconnectTimers.get(timerKey);
+        if (timer) {
+          clearTimeout(timer);
+          this.disconnectTimers.delete(timerKey);
+        }
         existing.ws = ws;
         existing.connected = true;
         const playerIndex = session.players.indexOf(existing);
@@ -109,6 +116,37 @@ export class SessionManager {
             id: existing.id,
             name: existing.name,
             avatar: existing.avatar,
+            isAI: false,
+            connected: true,
+            playerIndex,
+          },
+          isReconnection: true,
+        };
+      }
+    }
+
+    // Fallback reconnection: check for disconnected human player with matching name
+    const trimmedName = playerName.trim().toLowerCase();
+    if (trimmedName) {
+      const offlineMatch = session.players.find(
+        p => !p.connected && !p.isAI && p.name.trim().toLowerCase() === trimmedName
+      );
+      if (offlineMatch) {
+        const timerKey = `${sessionId}:${offlineMatch.id}`;
+        const timer = this.disconnectTimers.get(timerKey);
+        if (timer) {
+          clearTimeout(timer);
+          this.disconnectTimers.delete(timerKey);
+        }
+        offlineMatch.ws = ws;
+        offlineMatch.connected = true;
+        if (avatar) offlineMatch.avatar = avatar;
+        const playerIndex = session.players.indexOf(offlineMatch);
+        return {
+          player: {
+            id: offlineMatch.id,
+            name: offlineMatch.name,
+            avatar: offlineMatch.avatar,
             isAI: false,
             connected: true,
             playerIndex,
@@ -213,17 +251,40 @@ export class SessionManager {
     };
   }
 
-  public removePlayer(sessionId: string, playerId: string): boolean {
+  public removePlayer(sessionId: string, playerId: string, explicit = false): boolean {
     const session = this.getSession(sessionId);
     if (!session) return false;
     const player = session.players.find(p => p.id === playerId);
     if (!player) return false;
 
+    player.connected = false;
+    player.ws = null;
+
+    const timerKey = `${sessionId}:${playerId}`;
+    const existingTimer = this.disconnectTimers.get(timerKey);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+      this.disconnectTimers.delete(timerKey);
+    }
+
     if (session.status === 'lobby') {
-      session.players = session.players.filter(p => p.id !== playerId);
-    } else {
-      player.connected = false;
-      player.ws = null;
+      if (explicit) {
+        session.players = session.players.filter(p => p.id !== playerId);
+      } else {
+        // Disconnect grace period (90 seconds) for lobby disconnections
+        const timer = setTimeout(() => {
+          this.disconnectTimers.delete(timerKey);
+          const s = this.getSession(sessionId);
+          if (s && s.status === 'lobby') {
+            const pl = s.players.find(p => p.id === playerId);
+            if (pl && !pl.connected) {
+              s.players = s.players.filter(p => p.id !== playerId);
+              this.broadcastLobbyUpdate(sessionId);
+            }
+          }
+        }, 90000);
+        this.disconnectTimers.set(timerKey, timer);
+      }
     }
     return true;
   }
