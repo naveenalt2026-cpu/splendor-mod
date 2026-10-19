@@ -267,29 +267,29 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
     : null;
 
   return (
-    <div className="min-h-screen bg-[#0B0F1A] text-slate-100 flex flex-col justify-between py-2 sm:py-3 px-4 sm:px-8 md:px-12 lg:px-14 xl:px-16 select-none relative overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-[#0B0F1A] text-slate-100 flex flex-col justify-between py-2 sm:py-3 px-2 sm:px-4 md:px-6 lg:px-8 select-none relative overflow-x-hidden font-sans">
       {/* Top Header: Slim, streamlined bar matching HostTableView */}
-      <header className="relative flex flex-wrap items-center justify-between gap-3 px-4 py-2 rounded-xl bg-[#121826] border border-white/8 shadow-md backdrop-blur-md z-20 max-w-[1536px] w-full mx-auto">
+      <header className="relative flex items-center justify-between gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-xl bg-[#121826] border border-white/8 shadow-md backdrop-blur-md z-20 max-w-[1536px] w-full mx-auto flex-nowrap">
         {/* Left: Branding & Mode Badge */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-sm">
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-sm shrink-0">
             <Sparkles size={16} className="stroke-[2.5]" />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <span className="font-['Cinzel'] font-black text-xs sm:text-sm text-amber-200 tracking-wider">
               SPLENDOR
             </span>
-            <span className="text-[10px] font-mono bg-amber-500/15 border border-amber-500/30 text-amber-300 px-2 py-0.5 rounded-full font-bold">
+            <span className="text-[10px] font-mono bg-amber-500/15 border border-amber-500/30 text-amber-300 px-2 py-0.5 rounded-full font-bold hidden sm:inline">
               SOLO PRACTICE
             </span>
           </div>
         </div>
 
         {/* Center: Active Player Turn Capsule & Interactive Gem Bank Pill */}
-        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap justify-center">
+        <div className="flex items-center gap-2 sm:gap-2.5 justify-center shrink-0">
           {/* Active Player Turn Capsule */}
           <div
-            className={`flex items-center gap-2 px-3 py-1 rounded-full border shadow-sm shrink-0 transition-all ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full border shadow-sm shrink-0 transition-all ${
               isHumanTurn
                 ? 'bg-gradient-to-r from-emerald-500/20 via-emerald-500/30 to-emerald-500/20 border-emerald-400/60 shadow-[0_0_12px_rgba(16,185,129,0.25)]'
                 : 'bg-gradient-to-r from-amber-500/15 via-amber-500/25 to-amber-500/15 border-amber-400/40'
@@ -314,14 +314,14 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
           </div>
 
           {/* Interactive Gem Bank Pill inside Header */}
-          <div className="flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#070B14]/95 border border-amber-500/25 shadow-md shrink-0">
-            <div className="flex items-center gap-1.5 pr-2 sm:pr-2.5 border-r border-white/10">
-              <Sparkles size={16} className="text-amber-400" />
-              <span className="font-['Cinzel'] font-bold text-xs sm:text-sm uppercase tracking-wider text-amber-200 hidden md:inline">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-[#070B14]/95 border border-amber-500/25 shadow-md shrink-0">
+            <div className="flex items-center gap-1 pr-1.5 sm:pr-2 border-r border-white/10">
+              <Sparkles size={15} className="text-amber-400 shrink-0" />
+              <span className="font-['Cinzel'] font-bold text-xs uppercase tracking-wider text-amber-200 hidden md:inline">
                 BANK
               </span>
             </div>
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1 sm:gap-1.5">
               {ALL_TOKENS.map((t) => {
                 const count = state.bank[t] || 0;
                 const isGem = t !== 'gold';
@@ -334,9 +334,9 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
                     type="button"
                     disabled={!isHumanTurn || !isGem || (count === 0 && !isStaged)}
                     onClick={() => isGem && handleToggleStagedGem(t as GemType)}
-                    className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg border transition-all ${
+                    className={`relative flex items-center gap-1 px-2 py-1 rounded-lg border transition-all ${
                       isStaged
-                        ? 'bg-amber-400/20 border-amber-400 ring-2 ring-amber-400/50 scale-105 shadow-sm'
+                        ? 'bg-amber-400/20 border-amber-400 ring-2 ring-amber-400/50 shadow-sm'
                         : count > 0
                         ? isHumanTurn && isGem
                           ? 'bg-white/5 border-white/10 text-white hover:border-amber-400/50 hover:bg-white/10 cursor-pointer active:scale-95'
@@ -353,13 +353,13 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
                       type={t}
                       size="sm"
                       variant={t === 'gold' ? 'chip' : 'gem'}
-                      className="w-5 h-5 sm:w-6 sm:h-6 shrink-0"
+                      className="w-5 h-5 shrink-0"
                     />
-                    <span className="font-mono font-black text-sm sm:text-base text-white leading-none">
+                    <span className="font-mono font-black text-sm text-white leading-none">
                       {count}
                     </span>
                     {stagedCount > 0 && (
-                      <span className="font-mono font-black text-xs text-amber-300 bg-amber-950/90 px-1.5 py-0.5 rounded-full border border-amber-400/60 leading-none">
+                      <span className="absolute -top-1.5 -right-1 font-mono font-black text-[9px] text-slate-950 bg-gradient-to-r from-amber-400 to-yellow-300 px-1 py-0.2 rounded-full border border-amber-200 shadow-xs leading-none z-10 animate-bounce">
                         +{stagedCount}
                       </span>
                     )}
@@ -370,12 +370,12 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
 
             {/* Token staging confirmation / cancel button */}
             {stagedGems.length > 0 && isHumanTurn && (
-              <div className="flex items-center gap-1.5 ml-1 pl-2 border-l border-white/10">
+              <div className="flex items-center gap-1 ml-1 pl-1.5 border-l border-white/15 shrink-0">
                 <button
                   type="button"
                   disabled={!canConfirmTokens}
                   onClick={handleConfirmTakeTokens}
-                  className={`py-1 px-2.5 rounded-lg font-['Cinzel'] font-black text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all ${
+                  className={`py-1 px-2.5 rounded-lg font-['Cinzel'] font-black text-xs uppercase tracking-wider flex items-center gap-1 transition-all ${
                     canConfirmTokens
                       ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-[0_0_12px_rgba(16,185,129,0.4)] cursor-pointer active:scale-95'
                       : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
@@ -386,16 +386,16 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
                       : 'Take 3 different gems or 2 of the same color (if 4+ in bank)'
                   }
                 >
-                  <Check size={13} className="stroke-[3]" />
+                  <Check size={12} className="stroke-[3]" />
                   <span>Take ({stagedGems.length})</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleClearStaged}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 text-xs transition-colors cursor-pointer"
+                  className="p-1 rounded-lg text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 text-xs transition-colors cursor-pointer"
                   title="Clear staged tokens"
                 >
-                  <X size={13} />
+                  <X size={12} />
                 </button>
               </div>
             )}
@@ -403,7 +403,7 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
         </div>
 
         {/* Right: Sleek mini utility controls */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           <button
             type="button"
             onClick={toggleSound}

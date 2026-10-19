@@ -100,15 +100,15 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
     : null;
 
   return (
-    <div className="min-h-screen bg-[#0B0F1A] text-slate-100 flex flex-col justify-between py-2 sm:py-3 px-4 sm:px-8 md:px-12 lg:px-14 xl:px-16 select-none relative overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-[#0B0F1A] text-slate-100 flex flex-col justify-between py-2 sm:py-3 px-2 sm:px-4 md:px-6 lg:px-8 select-none relative overflow-x-hidden font-sans">
       {/* Top Header: Slim, streamlined bar */}
-      <header className="relative flex flex-wrap items-center justify-between gap-3 px-4 py-2 rounded-xl bg-[#121826] border border-white/8 shadow-md backdrop-blur-md z-20 max-w-[1536px] w-full mx-auto">
+      <header className="relative flex items-center justify-between gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-xl bg-[#121826] border border-white/8 shadow-md backdrop-blur-md z-20 max-w-[1536px] w-full mx-auto flex-nowrap">
         {/* Left: Branding & Room Session (Target VP removed as requested) */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-sm">
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-sm shrink-0">
             <Tv size={16} className="stroke-[2.5]" />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <span className="font-['Cinzel'] font-black text-xs sm:text-sm text-amber-200 tracking-wider">
               SPLENDOR
             </span>
@@ -119,9 +119,9 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
         </div>
 
         {/* Center: Active Player Turn Capsule & Contained Gem Bank Pill */}
-        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap justify-center">
+        <div className="flex items-center gap-2 sm:gap-2.5 justify-center shrink-0">
           {/* Active Player Turn Capsule */}
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/15 via-amber-500/25 to-amber-500/15 border border-amber-400/40 shadow-sm shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/15 via-amber-500/25 to-amber-500/15 border border-amber-400/40 shadow-sm shrink-0">
             <span className="text-base filter drop-shadow">{activePlayer?.avatar || '👑'}</span>
             <span className="font-['Cinzel'] font-black text-xs text-amber-300 tracking-wider">
               {activePlayer?.name?.toUpperCase()}'S TURN
@@ -133,20 +133,20 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
           </div>
 
           {/* Gem Bank Pill inside Header */}
-          <div className="flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-[#070B14]/95 border border-amber-500/25 shadow-md shrink-0">
-            <div className="flex items-center gap-1.5 pr-2 sm:pr-2.5 border-r border-white/10">
-              <Sparkles size={16} className="text-amber-400" />
-              <span className="font-['Cinzel'] font-bold text-xs sm:text-sm uppercase tracking-wider text-amber-200 hidden md:inline">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-[#070B14]/95 border border-amber-500/25 shadow-md shrink-0">
+            <div className="flex items-center gap-1 pr-1.5 sm:pr-2 border-r border-white/10">
+              <Sparkles size={15} className="text-amber-400 shrink-0" />
+              <span className="font-['Cinzel'] font-bold text-xs uppercase tracking-wider text-amber-200 hidden md:inline">
                 BANK
               </span>
             </div>
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1 sm:gap-1.5">
               {ALL_TOKENS.map(t => {
                 const count = publicState.bank[t] || 0;
                 return (
                   <div
                     key={t}
-                    className={`flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg border transition-all ${
+                    className={`flex items-center gap-1 px-2 py-1 rounded-lg border transition-all ${
                       count > 0
                         ? 'bg-white/5 border-white/10 text-white shadow-xs'
                         : 'bg-white/2 border-transparent text-slate-600 opacity-25'
@@ -157,9 +157,9 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
                       type={t}
                       size="sm"
                       variant={t === 'gold' ? 'chip' : 'gem'}
-                      className="w-5 h-5 sm:w-6 sm:h-6 shrink-0"
+                      className="w-5 h-5 shrink-0"
                     />
-                    <span className="font-mono font-black text-sm sm:text-base text-white leading-none">
+                    <span className="font-mono font-black text-sm text-white leading-none">
                       {count}
                     </span>
                   </div>
@@ -170,7 +170,7 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
         </div>
 
         {/* Right: Sleek mini utility controls */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           <button
             type="button"
             onClick={toggleSound}
