@@ -42,22 +42,22 @@ export const DiscardTokensModal: React.FC<DiscardTokensModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-md rounded-2xl bg-gradient-to-b from-slate-900 via-slate-950 to-slate-900 border-2 border-rose-500/70 shadow-2xl p-6 text-slate-200">
-        <div className="flex items-center gap-2.5 text-rose-400 mb-3">
-          <AlertTriangle size={24} />
-          <h2 className="font-['Cinzel'] font-bold text-lg uppercase tracking-wider text-rose-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+      <div className="relative w-full max-w-md landscape:max-w-xl max-h-[92vh] overflow-y-auto rounded-3xl bg-[#121826] border border-rose-500/60 shadow-2xl p-5 landscape:p-4 text-slate-200">
+        <div className="flex items-center gap-2 text-rose-400 mb-2">
+          <AlertTriangle size={20} />
+          <h2 className="font-['Cinzel'] font-bold text-base uppercase tracking-wider text-rose-300">
             Excess Tokens Limit
           </h2>
         </div>
 
-        <p className="text-xs text-slate-300 mb-4 leading-relaxed">
+        <p className="text-xs text-slate-300 mb-3 leading-relaxed">
           You are holding more than the allowable 10 tokens limit. You must return{' '}
           <strong className="text-rose-400 font-bold">{countToDiscard} token(s)</strong> to the bank.
         </p>
 
         {/* Token selection list */}
-        <div className="space-y-2 mb-5">
+        <div className="grid grid-cols-1 landscape:grid-cols-2 gap-2 mb-4">
           {ALL_TOKENS.map(token => {
             const held = player.tokens[token] || 0;
             if (held === 0) return null;
