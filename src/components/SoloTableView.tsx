@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   CardAffordability,
   DevelopmentCard,
@@ -91,6 +91,7 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
   } | null>(null);
   const [turnActionPopup, setTurnActionPopup] = useState<GameLogEntry | null>(null);
   const lastProcessedLogIdRef = useRef<string | null>(null);
+  const isPopupActiveRef = useRef(false);
 
   const humanPlayer = state.players[0];
   const activePlayer = state.players[state.activePlayerIndex] || state.players[0];
@@ -103,6 +104,12 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
     setSoundEnabled(next);
     sound.setMuted(!next);
   };
+
+  // Popup dismiss handler (guarantees ref and state are synchronized)
+  const handleDismissPopup = useCallback(() => {
+    isPopupActiveRef.current = false;
+    setTurnActionPopup(null);
+  }, []);
 
   // Reset/Restart Solo Match
   const handleResetMatch = (newConfig = matchConfig) => {
@@ -117,31 +124,12 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
     setStagedGems([]);
     setConfirmingDeckTier(null);
     setIsReservedDrawerOpen(false);
+    isPopupActiveRef.current = false;
     setTurnActionPopup(null);
+    setCelebratingNoble(null);
     lastProcessedLogIdRef.current = null;
     sound.playTurnChime();
   };
-
-  // AI turn processing
-  useEffect(() => {
-    if (state.status === 'game_over') return;
-    if (state.activePlayerIndex !== 0) {
-      setConfirmingDeckTier(null);
-      setSelectedCardId(null);
-      setStagedGems([]);
-      setIsReservedDrawerOpen(false);
-
-      const timer = setTimeout(() => {
-        setState((prev) => {
-          if (prev.activePlayerIndex === 0 || prev.status === 'game_over') return prev;
-          const next = executeAIMove(prev, prev.activePlayerIndex);
-          return next;
-        });
-      }, 1100);
-
-      return () => clearTimeout(timer);
-    }
-  }, [state.activePlayerIndex, state.status, state.turnCount]);
 
   // Turn action popup listener on game log changes
   useEffect(() => {
@@ -170,6 +158,7 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
         }
       }
 
+      isPopupActiveRef.current = true;
       setTurnActionPopup(latestLog);
     }
   }, [state.log, soundEnabled]);
@@ -184,6 +173,33 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
       });
     }
   }, [state.claimedNobleEvent]);
+
+  // AI turn processing
+  useEffect(() => {
+    if (state.status === 'game_over') return;
+    if (state.activePlayerIndex !== 0) {
+      // Guard: wait if a turn action notification popup or noble celebration is currently active
+      if (turnActionPopup !== null || isPopupActiveRef.current || celebratingNoble !== null) {
+        return;
+      }
+
+      setConfirmingDeckTier(null);
+      setSelectedCardId(null);
+      setStagedGems([]);
+      setIsReservedDrawerOpen(false);
+
+      // Natural AI "thinking" delay after notification dismiss
+      const timer = setTimeout(() => {
+        setState((prev) => {
+          if (prev.activePlayerIndex === 0 || prev.status === 'game_over') return prev;
+          const next = executeAIMove(prev, prev.activePlayerIndex);
+          return next;
+        });
+      }, 800);
+
+      return () => clearTimeout(timer);
+    }
+  }, [state.activePlayerIndex, state.status, state.turnCount, turnActionPopup, celebratingNoble]);
 
   // Staged token selection logic
   const handleToggleStagedGem = (gem: GemType) => {
@@ -931,7 +947,7 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
         <TurnActionNotification
           log={turnActionPopup}
           playerAvatar={popupPlayer?.avatar}
-          onDismiss={() => setTurnActionPopup(null)}
+          onDismiss={handleDismissPopup}
         />
       )}
 

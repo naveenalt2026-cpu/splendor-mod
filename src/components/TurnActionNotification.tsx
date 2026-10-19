@@ -30,11 +30,11 @@ export const TurnActionNotification: React.FC<TurnActionNotificationProps> = ({
   playerAvatar,
   onDismiss,
 }) => {
-  // Auto-dismiss after 4.2 seconds so players can admire the visual elements
+  // Auto-dismiss after 3.8 seconds matching progress bar animation
   useEffect(() => {
     const timer = setTimeout(() => {
       onDismiss();
-    }, 4200);
+    }, 3800);
     return () => clearTimeout(timer);
   }, [log.id, onDismiss]);
 
