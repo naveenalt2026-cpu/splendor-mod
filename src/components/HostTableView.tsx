@@ -9,7 +9,7 @@ import { calculateBonuses } from '../game/rules.ts';
 import { GameLogEntry, NobleTile, GemType, TokenType } from '../types/game.ts';
 import { ALL_GEMS, ALL_TOKENS } from '../game/constants.ts';
 import { GemIcon } from './GemIcon.tsx';
-import { Crown, Shield, Tv, History, BookOpen, Volume2, VolumeX, RotateCcw, Trophy, Sparkles, Zap } from 'lucide-react';
+import { Crown, Shield, Tv, History, BookOpen, Volume2, VolumeX, RotateCcw, Trophy, Sparkles, Zap, PlusCircle, LogOut } from 'lucide-react';
 import { sound } from '../game/sound.ts';
 import { TurnActionNotification } from './TurnActionNotification.tsx';
 
@@ -17,12 +17,14 @@ interface HostTableViewProps {
   publicState: PublicGameState;
   onRestartMatch: () => void;
   onExitHost: () => void;
+  onCreateNewRoom?: () => void;
 }
 
 export const HostTableView: React.FC<HostTableViewProps> = ({
   publicState,
   onRestartMatch,
   onExitHost,
+  onCreateNewRoom,
 }) => {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isRulesOpen, setIsRulesOpen] = useState(false);
@@ -197,9 +199,36 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
             type="button"
             onClick={onRestartMatch}
             className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/40 transition-colors cursor-pointer"
-            title="Restart Match"
+            title="Restart Match (Same Players)"
           >
             <RotateCcw size={14} />
+          </button>
+          {onCreateNewRoom && (
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('Close this room and generate a new room code with a fresh QR code?')) {
+                  onCreateNewRoom();
+                }
+              }}
+              className="px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:text-amber-200 hover:bg-amber-500/20 text-xs font-['Cinzel'] font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Close Room & Create New Room"
+            >
+              <PlusCircle size={13} />
+              <span className="hidden sm:inline">New Room</span>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm('Close this match and return to the main menu?')) {
+                onExitHost();
+              }
+            }}
+            className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-400 hover:text-red-400 hover:border-red-500/30 transition-colors cursor-pointer"
+            title="Exit to Menu"
+          >
+            <LogOut size={14} />
           </button>
         </div>
       </header>
@@ -535,13 +564,35 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
               A Renaissance Gem Master has accumulated the required prestige!
             </p>
 
-            <button
-              type="button"
-              onClick={onRestartMatch}
-              className="w-full py-3 px-6 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-['Cinzel'] font-black text-base uppercase tracking-wider shadow-lg transition-transform active:scale-95 cursor-pointer"
-            >
-              Start New Match
-            </button>
+            <div className="w-full flex flex-col gap-2.5">
+              <button
+                type="button"
+                onClick={onRestartMatch}
+                className="w-full py-3 px-6 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-['Cinzel'] font-black text-sm uppercase tracking-wider shadow-lg transition-transform active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+              >
+                <RotateCcw size={16} />
+                <span>Play Again (Same Room & Players)</span>
+              </button>
+
+              {onCreateNewRoom && (
+                <button
+                  type="button"
+                  onClick={onCreateNewRoom}
+                  className="w-full py-2.5 px-6 rounded-xl bg-emerald-500/20 border border-emerald-400/50 hover:bg-emerald-500/30 text-emerald-300 font-['Cinzel'] font-black text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <PlusCircle size={15} />
+                  <span>Create New Room (New QR Code)</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={onExitHost}
+                className="w-full py-2 px-6 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-slate-200 font-['Cinzel'] font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
+              >
+                Exit to Main Menu
+              </button>
+            </div>
           </div>
         </div>
       )}

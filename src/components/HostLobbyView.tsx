@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Crown, Users, Sparkles, Copy, Check, Tv, Bot, ArrowRight, Shield } from 'lucide-react';
+import { Crown, Users, Sparkles, Copy, Check, Tv, Bot, ArrowRight, Shield, RefreshCw } from 'lucide-react';
 import { SessionPlayer } from '../types/multiplayer.ts';
 
 interface HostLobbyViewProps {
@@ -11,6 +11,7 @@ interface HostLobbyViewProps {
   onStartGame: () => void;
   onAddAI: () => void;
   onExitHost: () => void;
+  onCreateNewRoom?: () => void;
 }
 
 export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
@@ -21,6 +22,7 @@ export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
   onStartGame,
   onAddAI,
   onExitHost,
+  onCreateNewRoom,
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -56,13 +58,31 @@ export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onExitHost}
-          className="text-xs font-['Cinzel'] text-slate-400 hover:text-amber-300 px-3 py-1.5 rounded-xl border border-white/10 hover:border-amber-500/40 transition-colors cursor-pointer"
-        >
-          Exit to Menu
-        </button>
+        <div className="flex items-center gap-2">
+          {onCreateNewRoom && (
+            <button
+              type="button"
+              onClick={() => {
+                if (players.length === 0 || window.confirm('Close this room and generate a new room code?')) {
+                  onCreateNewRoom();
+                }
+              }}
+              className="text-xs font-['Cinzel'] font-bold text-amber-300 hover:text-amber-200 px-3 py-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Close current room and create a new room code"
+            >
+              <RefreshCw size={13} />
+              <span>New Room Code</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={onExitHost}
+            className="text-xs font-['Cinzel'] text-slate-400 hover:text-amber-300 px-3 py-1.5 rounded-xl border border-white/10 hover:border-amber-500/40 transition-colors cursor-pointer"
+          >
+            Exit to Menu
+          </button>
+        </div>
       </header>
 
       {/* Main Center Area: Large QR Code + Room Code + Live Player Slots */}

@@ -130,6 +130,15 @@ wss.on('connection', (ws: WebSocket, req) => {
           break;
         }
 
+        case 'host_close_session': {
+          if (!data.sessionId) return;
+          sessionManager.closeSession(data.sessionId);
+          if (boundSessionId === data.sessionId.toUpperCase()) {
+            boundSessionId = null;
+          }
+          break;
+        }
+
         case 'player_leave_session': {
           if (data.sessionId && data.playerId) {
             sessionManager.removePlayer(data.sessionId, data.playerId, true);

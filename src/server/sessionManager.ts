@@ -88,6 +88,40 @@ export class SessionManager {
     return true;
   }
 
+  public closeSession(sessionId: string): boolean {
+    const session = this.getSession(sessionId);
+    if (!session) return false;
+
+    // Clear any disconnect timers for this session
+    for (const p of session.players) {
+      const timerKey = `${session.sessionId}:${p.id}`;
+      const timer = this.disconnectTimers.get(timerKey);
+      if (timer) {
+        clearTimeout(timer);
+        this.disconnectTimers.delete(timerKey);
+      }
+    }
+
+    // Broadcast session_closed to all connected players
+    const message = JSON.stringify({
+      type: 'session_closed',
+      message: 'The host has closed this room.',
+    });
+
+    for (const p of session.players) {
+      if (p.ws && p.ws.readyState === WebSocket.OPEN) {
+        try {
+          p.ws.send(message);
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    this.sessions.delete(session.sessionId.toUpperCase());
+    return true;
+  }
+
   public addPlayer(
     sessionId: string,
     playerName: string,

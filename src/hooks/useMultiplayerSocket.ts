@@ -143,6 +143,26 @@ export function useMultiplayerSocket() {
             saveHostSession(msg.sessionId);
             break;
 
+          case 'session_closed':
+            clearPlayerSession();
+            clearHostSession();
+            setSessionId(null);
+            setMyPlayerId(null);
+            setMyPlayerIndex(null);
+            setPublicState(null);
+            setPrivateState(null);
+            setLobbyPlayers([]);
+            setIsReconnecting(false);
+            setErrorMessage(msg.message || 'The host has closed this room.');
+            activeSessionRef.current = {
+              sessionId: null,
+              playerId: null,
+              playerName: null,
+              avatar: null,
+              isHost: false,
+            };
+            break;
+
           case 'player_join_success': {
             setSessionId(msg.sessionId);
             setMyPlayerId(msg.playerId);
@@ -409,6 +429,58 @@ export function useMultiplayerSocket() {
     });
   }, [sendMessage, sessionId]);
 
+  const closeHostSession = useCallback(() => {
+    const cur = activeSessionRef.current;
+    if (cur.sessionId) {
+      sendMessage({
+        type: 'host_close_session',
+        sessionId: cur.sessionId,
+      });
+    }
+    clearHostSession();
+    setSessionId(null);
+    setPublicState(null);
+    setPrivateState(null);
+    setLobbyPlayers([]);
+    setIsHost(false);
+    activeSessionRef.current = {
+      sessionId: null,
+      playerId: null,
+      playerName: null,
+      avatar: null,
+      isHost: false,
+    };
+  }, [sendMessage]);
+
+  const createNewHostRoom = useCallback(
+    (targetVP = 15) => {
+      const cur = activeSessionRef.current;
+      if (cur.sessionId) {
+        sendMessage({
+          type: 'host_close_session',
+          sessionId: cur.sessionId,
+        });
+      }
+      clearHostSession();
+      setSessionId(null);
+      setPublicState(null);
+      setPrivateState(null);
+      setLobbyPlayers([]);
+      activeSessionRef.current = {
+        sessionId: null,
+        playerId: null,
+        playerName: null,
+        avatar: null,
+        isHost: true,
+      };
+      sendMessage({
+        type: 'host_create_session',
+        targetVP,
+      });
+    },
+    [sendMessage]
+  );
+
   const sendGameAction = useCallback(
     (action: ClientGameAction) => {
       if (!sessionId || !myPlayerId) return;
@@ -437,6 +509,8 @@ export function useMultiplayerSocket() {
     errorMessage,
     storedPlayerSession: validStoredPlayer,
     createHostSession,
+    createNewHostRoom,
+    closeHostSession,
     joinSession,
     leaveSession,
     reconnectManual,

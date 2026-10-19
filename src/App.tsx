@@ -71,6 +71,8 @@ export default function App() {
     errorMessage,
     storedPlayerSession,
     createHostSession,
+    createNewHostRoom,
+    closeHostSession,
     joinSession,
     leaveSession,
     reconnectManual,
@@ -233,7 +235,11 @@ export default function App() {
           canStart={canStart}
           onStartGame={startHostGame}
           onAddAI={() => addAIPlayer('medium')}
-          onExitHost={() => setMode('choose_mode')}
+          onCreateNewRoom={() => createNewHostRoom(15)}
+          onExitHost={() => {
+            closeHostSession();
+            setMode('choose_mode');
+          }}
         />
       );
     }
@@ -243,8 +249,9 @@ export default function App() {
       <HostTableView
         publicState={publicState}
         onRestartMatch={restartHostGame}
+        onCreateNewRoom={() => createNewHostRoom(15)}
         onExitHost={() => {
-          leaveSession();
+          closeHostSession();
           setMode('choose_mode');
         }}
       />

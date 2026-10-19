@@ -69,6 +69,7 @@ export type ClientGameAction =
 export type ClientMessage =
   | { type: 'host_create_session'; targetVP?: number }
   | { type: 'host_reconnect'; sessionId: string }
+  | { type: 'host_close_session'; sessionId: string }
   | { type: 'player_join_session'; sessionId: string; playerName: string; avatar: string; playerId?: string }
   | { type: 'player_leave_session'; sessionId: string; playerId: string }
   | { type: 'host_add_ai'; sessionId: string; difficulty?: 'easy' | 'medium' | 'hard' }
@@ -79,6 +80,7 @@ export type ClientMessage =
 
 export type ServerMessage =
   | { type: 'session_created'; sessionId: string; joinUrl: string }
+  | { type: 'session_closed'; message: string }
   | { type: 'player_join_success'; sessionId: string; playerId: string; playerIndex: number; publicState: PublicGameState; privateState: PrivatePlayerState }
   | { type: 'session_lobby_update'; sessionId: string; players: SessionPlayer[]; canStart: boolean }
   | { type: 'game_state_sync'; publicState: PublicGameState; privateState?: PrivatePlayerState }

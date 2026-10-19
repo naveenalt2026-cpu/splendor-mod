@@ -191,3 +191,32 @@ test('SessionManager handles active game reconnection with full state restoratio
   assert.equal(publicState.players[0].tokens.emerald, 1);
 });
 
+test('SessionManager closes session and notifies connected players', () => {
+  const sm = new SessionManager();
+  let receivedMessage: string | null = null;
+  const mockPlayerWs = {
+    readyState: WebSocket.OPEN,
+    send: (msg: string) => {
+      receivedMessage = msg;
+    },
+  } as unknown as WebSocket;
+
+  const mockHostWs = {} as WebSocket;
+  const session = sm.createSession(mockHostWs);
+
+  const p1 = sm.addPlayer(session.sessionId, 'Lorenzo', '👑', mockPlayerWs) as any;
+  assert.ok(p1.player);
+
+  const closed = sm.closeSession(session.sessionId);
+  assert.equal(closed, true);
+
+  // Session is deleted
+  assert.equal(sm.getSession(session.sessionId), undefined);
+
+  // Player received session_closed notification
+  assert.ok(receivedMessage);
+  const parsed = JSON.parse(receivedMessage);
+  assert.equal(parsed.type, 'session_closed');
+});
+
+
