@@ -98,7 +98,7 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
     : null;
 
   return (
-    <div className="min-h-screen bg-[#0B0F1A] text-slate-100 flex flex-col justify-between p-2.5 sm:p-3 lg:p-4 select-none relative overflow-x-hidden font-sans">
+    <div className="min-h-screen bg-[#0B0F1A] text-slate-100 flex flex-col justify-between py-2 sm:py-3 px-4 sm:px-8 md:px-12 lg:px-14 xl:px-16 select-none relative overflow-x-hidden font-sans">
       {/* Top Header: Slim, streamlined bar */}
       <header className="relative flex flex-wrap items-center justify-between gap-3 px-4 py-2 rounded-xl bg-[#121826] border border-white/8 shadow-md backdrop-blur-md z-20 max-w-[1536px] w-full mx-auto">
         {/* Left: Branding & Room Session */}
@@ -209,13 +209,13 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
       </section>
 
       {/* Main Playing Arena: 3 Columns (Left: Nobles Dais | Center: Cards Arena | Right: Scoreboard) */}
-      <main className="relative flex-1 max-w-[1536px] w-full mx-auto py-2.5 sm:py-3.5 flex flex-col lg:flex-row items-stretch lg:items-start justify-between gap-3 lg:gap-4 z-10 overflow-y-auto">
-        {/* Left Column: Noble Patrons Dais (Reduced width, zero scroll, sleek cameo tiles) */}
+      <main className="relative flex-1 max-w-[1536px] w-full mx-auto py-2 sm:py-3 flex flex-col lg:grid lg:grid-cols-[1fr_auto_1fr] items-center lg:items-start justify-center gap-4 lg:gap-6 z-10 overflow-y-auto">
+        {/* Left Column: Noble Patrons Dais (Zero scroll, sleek cameo tiles) */}
         <aside
-          className="relative flex flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-[#121826]/90 border border-white/8 shadow-xl backdrop-blur-md shrink-0 z-10 w-full lg:w-44 xl:w-48"
+          className="relative flex flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-[#121826]/90 border border-white/8 shadow-xl backdrop-blur-md shrink-0 z-10 w-full max-w-[240px] xl:max-w-[260px] justify-self-center lg:justify-self-end"
           aria-label="Noble Patrons Dais"
         >
-          <div className="flex items-center justify-between gap-1.5 mb-2 pb-2 border-b border-white/10 w-full px-1">
+          <div className="flex items-center justify-between gap-1.5 mb-2 pb-2 border-b border-white/10 w-full px-1 shrink-0">
             <div className="flex items-center gap-1.5">
               <Shield size={14} className="text-amber-400" />
               <span className="font-['Cinzel'] font-bold text-xs uppercase tracking-wider text-amber-200">
@@ -232,13 +232,7 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
               All Nobles Claimed!
             </div>
           ) : (
-            <div
-              className={`w-full gap-2.5 ${
-                publicState.nobles.length > 3
-                  ? 'grid grid-cols-2'
-                  : 'flex flex-col'
-              }`}
-            >
+            <div className="w-full flex flex-col gap-2">
               {publicState.nobles.map(noble => (
                 <NobleTileView
                   key={noble.id}
@@ -253,7 +247,7 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
 
         {/* Center Column: Three Horizontal Rows of Development Cards (Tier 3 -> Tier 2 -> Tier 1) */}
         <section
-          className="flex-1 flex flex-col gap-2 sm:gap-2.5 w-full max-w-4xl mx-auto overflow-x-auto pb-1"
+          className="flex flex-col gap-1.5 sm:gap-2 shrink-0 justify-self-center mx-auto overflow-x-auto pb-1"
           aria-label="Development Cards Arena"
         >
           {([3, 2, 1] as const).map(tier => {
@@ -283,15 +277,15 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
                   };
 
             return (
-              <div key={tier} className="flex items-center justify-start gap-2 sm:gap-2.5 min-w-[580px] sm:min-w-0 w-full">
+              <div key={tier} className="flex items-center justify-center gap-1.5 sm:gap-2 shrink-0">
                 {/* Tier Deck Card Stack */}
                 <div
-                  className={`relative shrink-0 rounded-2xl border ${tierStyle.border} ${tierStyle.bg} w-16 sm:w-20 md:w-22 h-44 sm:h-48 md:h-52 flex flex-col items-center justify-center select-none shadow-md`}
+                  className={`relative shrink-0 rounded-2xl border ${tierStyle.border} ${tierStyle.bg} w-14 sm:w-16 md:w-18 h-42 sm:h-46 md:h-48 flex flex-col items-center justify-center select-none shadow-md`}
                 >
                   <span className={`px-2 py-0.5 rounded-full border text-xs font-mono font-bold ${tierStyle.badge}`}>
                     {tierStyle.label}
                   </span>
-                  <div className="text-base sm:text-lg font-bold font-mono text-white mt-2">
+                  <div className="text-base sm:text-lg font-bold font-mono text-white mt-1.5">
                     {deckRemaining}
                   </div>
                   <div className="text-[10px] text-slate-400 uppercase font-['Cinzel'] tracking-wider">
@@ -299,10 +293,10 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
                   </div>
                 </div>
 
-                {/* 4 Face-Up Cards per Tier */}
-                <div className="grid grid-cols-4 gap-2 sm:gap-2.5 flex-1">
+                {/* 4 Face-Up Cards per Tier with reduced column spacing */}
+                <div className="grid grid-cols-4 gap-1.5 sm:gap-2 shrink-0">
                   {faceUp.map(card => (
-                    <div key={card.id} className="relative flex justify-center">
+                    <div key={card.id} className="relative shrink-0">
                       <DevelopmentCardView
                         card={card}
                         disabled={false}
@@ -318,10 +312,10 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
 
         {/* Right Column: Player Game Details Scoreboard */}
         <aside
-          className="relative flex flex-col gap-2 w-full lg:w-72 xl:w-80 shrink-0 z-10"
+          className="relative flex flex-col gap-2 w-full max-w-[270px] xl:max-w-[300px] shrink-0 z-10 justify-self-center lg:justify-self-start"
           aria-label="Players Scoreboard"
         >
-          <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-[#121826]/80 border border-white/8">
+          <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-[#121826]/80 border border-white/8 shrink-0">
             <div className="flex items-center gap-1.5">
               <Crown size={14} className="text-amber-400" />
               <span className="font-['Cinzel'] font-bold text-xs uppercase tracking-wider text-amber-200">
@@ -333,7 +327,7 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
             </span>
           </div>
 
-          <div className="flex flex-col gap-2.5 overflow-y-auto max-h-none lg:max-h-[calc(100vh-140px)] pr-0.5">
+          <div className="flex flex-col gap-2 overflow-y-auto max-h-none lg:max-h-[calc(100vh-140px)] pr-0.5">
             {publicState.players.map((p, idx) => {
               const isActive = idx === publicState.activePlayerIndex;
               const bonuses = calculateBonuses(p.cards);
@@ -343,7 +337,7 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
               return (
                 <div
                   key={p.id}
-                  className={`p-3 rounded-2xl border transition-all ${
+                  className={`p-2 sm:p-2.5 rounded-2xl border transition-all ${
                     isActive
                       ? 'bg-[#151e33] border-amber-400 ring-2 ring-amber-400/50 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
                       : 'bg-[#121826] border-white/8 opacity-90 hover:opacity-100'

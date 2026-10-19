@@ -38,8 +38,8 @@ export const NobleTileView: React.FC<NobleTileViewProps> = ({
     <div
       className={`relative rounded-2xl transition-all duration-200 select-none flex flex-col justify-between overflow-hidden ${
         compact
-          ? 'w-full max-w-[175px] min-h-[148px] p-2'
-          : 'w-28 sm:w-34 min-h-[160px] p-2.5'
+          ? 'w-full p-2'
+          : 'w-28 sm:w-34 min-h-[150px] p-2.5'
       } bg-[#121826] border shadow-md ${
         isSatisfied
           ? 'border-amber-400 ring-2 ring-amber-400/80 shadow-[0_0_20px_rgba(245,158,11,0.35)] scale-[1.02]'
@@ -58,7 +58,7 @@ export const NobleTileView: React.FC<NobleTileViewProps> = ({
           <span className="text-[8px] text-amber-400 font-bold leading-none">VP</span>
         </div>
 
-        <div className="text-[11px] font-['Cinzel'] font-black text-amber-100 uppercase tracking-wide truncate max-w-[95px] text-right">
+        <div className="text-[11px] font-['Cinzel'] font-black text-amber-100 uppercase tracking-wide truncate max-w-[120px] text-right">
           {shortName}
         </div>
       </div>
@@ -68,7 +68,7 @@ export const NobleTileView: React.FC<NobleTileViewProps> = ({
         <NoblePortrait
           nobleId={noble.id}
           name={noble.name}
-          className={compact ? 'h-16 sm:h-18 w-full' : 'h-18 sm:h-20 w-full'}
+          className={compact ? 'h-12 sm:h-14 w-full' : 'h-18 sm:h-20 w-full'}
         />
       </div>
 

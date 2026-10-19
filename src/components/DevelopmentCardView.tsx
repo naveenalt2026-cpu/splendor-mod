@@ -15,6 +15,7 @@ interface DevelopmentCardViewProps {
   onReserve?: () => void;
   disabled?: boolean;
   compact?: boolean;
+  className?: string;
 }
 
 export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
@@ -28,6 +29,7 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
   onReserve,
   disabled = false,
   compact = false,
+  className = '',
 }) => {
   const gemColor = GEM_COLORS[card.gemBonus];
   const canAfford = affordability?.canAfford ?? false;
@@ -45,14 +47,14 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
       className={`relative group rounded-2xl transition-all duration-200 select-none flex flex-col justify-between overflow-hidden ${
         compact
           ? 'w-24 sm:w-28 h-36 sm:h-40 p-2'
-          : 'w-28 sm:w-32 md:w-36 lg:w-[150px] h-44 sm:h-48 md:h-52 p-2.5 sm:p-3'
+          : 'w-28 sm:w-30 md:w-32 lg:w-[134px] xl:w-[140px] h-42 sm:h-46 md:h-48 p-2 sm:p-2.5'
       } bg-[#121826] border border-white/8 shadow-md hover:shadow-xl hover:border-white/20 ${
         isSelected
           ? 'ring-2 ring-amber-400 scale-[1.03] z-30 shadow-[0_0_25px_rgba(245,158,11,0.35)]'
           : canAfford
           ? 'ring-1.5 ring-emerald-500/70 hover:ring-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)] hover:scale-[1.02] cursor-pointer'
           : 'hover:scale-[1.01] cursor-pointer'
-      } ${disabled ? 'opacity-40 grayscale-[40%] pointer-events-none' : ''}`}
+      } ${disabled ? 'opacity-40 grayscale-[40%] pointer-events-none' : ''} ${className}`}
       role="button"
       tabIndex={0}
       aria-label={`${card.name}, Tier ${card.tier}, ${card.prestigePoints} Prestige Points, provides ${card.gemBonus} bonus`}
