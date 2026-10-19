@@ -180,7 +180,7 @@ export const BottomPlayerTableau: React.FC<BottomPlayerTableauProps> = ({
                   const isSelected = selectedReservedCardId === card.id;
 
                   return (
-                    <div key={card.id} className="relative">
+                    <div key={card.id} className={`relative ${isSelected ? 'z-30' : 'z-10'}`}>
                       <DevelopmentCardView
                         card={card}
                         compact

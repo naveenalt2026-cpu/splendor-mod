@@ -542,7 +542,7 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
 
         {/* Center Column: Three Horizontal Rows of Development Cards (Tier 3 -> Tier 2 -> Tier 1) */}
         <section
-          className="flex flex-col gap-1.5 sm:gap-2 shrink-0 justify-self-center mx-auto overflow-x-auto pb-1"
+          className="flex flex-col gap-1.5 sm:gap-2 shrink-0 justify-self-center mx-auto overflow-x-auto p-2 sm:p-2.5"
           aria-label="Development Cards Arena"
         >
           {([3, 2, 1] as const).map((tier) => {
@@ -652,7 +652,7 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
                     const isSelected = selectedCardId === card.id;
 
                     return (
-                      <div key={card.id} className="relative shrink-0">
+                      <div key={card.id} className={`relative shrink-0 ${isSelected ? 'z-30' : 'z-10'}`}>
                         <DevelopmentCardView
                           card={card}
                           affordability={affordability}
@@ -680,7 +680,7 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
 
         {/* Right Column: Player Game Details Scoreboard matching HostTableView */}
         <aside
-          className="relative flex flex-col gap-2 w-full max-w-[288px] xl:max-w-[316px] shrink-0 z-10 justify-self-center lg:justify-self-start"
+          className="relative flex flex-col gap-2 w-full max-w-[288px] xl:max-w-[316px] shrink-0 z-10 justify-self-center lg:justify-self-start p-1"
           aria-label="Players Scoreboard"
         >
           <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-[#121826]/80 border border-white/8 shrink-0">

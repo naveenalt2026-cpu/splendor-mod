@@ -299,7 +299,7 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
 
         {/* Center Column: Three Horizontal Rows of Development Cards (Tier 3 -> Tier 2 -> Tier 1) */}
         <section
-          className="flex flex-col gap-1.5 sm:gap-2 shrink-0 justify-self-center mx-auto overflow-x-auto pb-1"
+          className="flex flex-col gap-1.5 sm:gap-2 shrink-0 justify-self-center mx-auto overflow-x-auto p-2 sm:p-2.5"
           aria-label="Development Cards Arena"
         >
           {([3, 2, 1] as const).map(tier => {

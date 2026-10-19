@@ -2,7 +2,7 @@ import React from 'react';
 import { CardAffordability, DevelopmentCard, GemType } from '../types/game.ts';
 import { GEM_COLORS } from '../game/constants.ts';
 import { GemIcon } from './GemIcon.tsx';
-import { Check, RotateCcw, X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 
 interface DevelopmentCardViewProps {
   card: DevelopmentCard;
@@ -54,12 +54,12 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
         compact
           ? 'w-24 sm:w-28 h-40 sm:h-44 p-2'
           : 'w-28 sm:w-30 md:w-32 lg:w-[134px] xl:w-[140px] h-48 sm:h-52 md:h-56 lg:h-[216px] xl:h-[224px] p-2.5 sm:p-3'
-      } bg-gradient-to-b from-[#1A2538] via-[#141D2C] to-[#0E1522] border border-white/12 shadow-lg hover:border-white/25 ${
+      } bg-gradient-to-b from-[#1A2538] via-[#141D2C] to-[#0E1522] ${
         isSelected
-          ? 'ring-2 ring-amber-400 scale-[1.03] z-30 shadow-[0_0_25px_rgba(245,158,11,0.35)] cursor-pointer'
+          ? 'border-2 border-amber-400 ring-2 ring-amber-400/40 z-30 shadow-[0_0_20px_rgba(245,158,11,0.35)] cursor-pointer'
           : canAfford
-          ? 'ring-1.5 ring-emerald-500/70 hover:ring-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)] hover:scale-[1.02] cursor-pointer'
-          : 'hover:scale-[1.01] cursor-pointer'
+          ? 'border border-emerald-500/70 hover:border-emerald-400 ring-1 ring-emerald-500/40 shadow-[0_0_12px_rgba(16,185,129,0.2)] hover:scale-[1.01] cursor-pointer'
+          : 'border border-white/12 hover:border-white/25 hover:scale-[1.01] cursor-pointer'
       } ${disabled ? 'opacity-40 grayscale-[40%] pointer-events-none' : ''} ${className}`}
       role="button"
       tabIndex={0}
@@ -143,25 +143,14 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
           }}
           title="Click card to flip back"
         >
-          {/* Header Row: Points/Tier & Gem Bonus on Left, Flip-back X on Right */}
-          <div className="w-full flex items-center justify-between gap-1 pb-1 border-b border-white/8 shrink-0">
+          {/* Top Bar: VP & Gem Bonus on Left, Close X on Right (No overlapping) */}
+          <div className="w-full flex items-center justify-between gap-1 px-0.5 pt-0.5">
             <div className="flex items-center gap-1.5 min-w-0">
-              {card.prestigePoints > 0 ? (
-                <div className="flex items-baseline gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/35 shrink-0">
-                  <span className="font-['Cinzel'] font-black text-amber-300 text-xs leading-none">
-                    {card.prestigePoints}
-                  </span>
-                  <span className="text-[8px] text-amber-400 font-bold leading-none">VP</span>
-                </div>
-              ) : (
-                <span className="text-[9px] font-mono text-slate-400 font-bold px-1.5 py-0.5 rounded bg-white/5 shrink-0">
-                  T{card.tier}
-                </span>
-              )}
-              <div className="flex items-center gap-1 shrink-0">
-                <GemIcon type={card.gemBonus} size="xs" variant="gem" />
-                <span className="text-[9px] text-slate-400 font-medium capitalize truncate">{card.gemBonus}</span>
-              </div>
+              <span className="text-[10px] text-amber-300 font-bold whitespace-nowrap">
+                +{card.prestigePoints} VP
+              </span>
+              <span className="text-[10px] text-slate-500">•</span>
+              <GemIcon type={card.gemBonus} size="xs" variant="gem" />
             </div>
 
             <button
@@ -170,7 +159,7 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
                 e.stopPropagation();
                 onSelect?.();
               }}
-              className="p-1 rounded-md text-slate-400 hover:text-amber-200 hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+              className="p-1 rounded-full text-slate-400 hover:text-amber-200 hover:bg-white/10 transition-colors cursor-pointer shrink-0"
               title="Flip back"
               aria-label="Flip back"
             >
@@ -178,10 +167,10 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
             </button>
           </div>
 
-          {/* Card Title Row: Dedicated line with full card width and zero overlap */}
-          <div className="w-full min-w-0 text-center px-1 my-0.5 shrink-0">
+          {/* Card Name Row */}
+          <div className="text-center w-full px-1 my-auto">
             <span
-              className="font-['Cinzel'] font-bold text-[11px] text-amber-200 block truncate leading-tight"
+              className="font-['Cinzel'] font-bold text-[11px] sm:text-xs text-amber-200 block truncate"
               title={card.name}
             >
               {card.name}
@@ -264,9 +253,8 @@ export const DevelopmentCardView: React.FC<DevelopmentCardViewProps> = ({
             )}
 
             {!compact && (
-              <div className="flex items-center justify-center gap-1 pt-0.5 text-slate-500 hover:text-slate-300 transition-colors">
-                <RotateCcw size={9} />
-                <span className="text-[9px] font-['Cinzel'] tracking-wider">
+              <div className="text-center pt-0.5">
+                <span className="text-[9px] text-slate-500 hover:text-slate-300 font-['Cinzel'] tracking-wider">
                   Tap card to flip back
                 </span>
               </div>
