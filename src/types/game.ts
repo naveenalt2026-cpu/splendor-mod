@@ -49,8 +49,14 @@ export interface GameLogEntry {
     tokens?: Partial<TokenCount>;
     cardId?: string;
     cardName?: string;
+    cardTier?: 1 | 2 | 3;
+    cardBonus?: GemType;
+    cardIllustration?: string;
     nobleName?: string;
     prestigePointsGained?: number;
+    goldAwarded?: boolean;
+    discardedCount?: number;
+    playerAvatar?: string;
   };
 }
 

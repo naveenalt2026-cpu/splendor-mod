@@ -241,6 +241,11 @@ export function executeTakeTokens(
   updatedPlayers[playerIndex] = updatedPlayer;
 
   const gemSummary = gems.map(g => g.charAt(0).toUpperCase() + g.slice(1)).join(', ');
+  const tokenDetails: Partial<TokenCount> = {};
+  for (const g of gems) {
+    tokenDetails[g] = (tokenDetails[g] || 0) + 1;
+  }
+
   const logEntry = {
     id: `log_${Date.now()}_${Math.random()}`,
     turn: state.turnCount,
@@ -249,6 +254,10 @@ export function executeTakeTokens(
     action: 'take_tokens' as const,
     description: `${player.name} collected tokens: ${gemSummary}.`,
     timestamp: Date.now(),
+    details: {
+      tokens: tokenDetails,
+      playerAvatar: player.avatar,
+    },
   };
 
   const nextState: GameState = {
@@ -366,6 +375,15 @@ export function executeBuyCard(
     action: 'buy_card' as const,
     description: `${player.name} bought ${targetCard.name} (+${targetCard.prestigePoints} VP, ${targetCard.gemBonus.toUpperCase()} bonus).`,
     timestamp: Date.now(),
+    details: {
+      cardId: targetCard.id,
+      cardName: targetCard.name,
+      cardTier: targetCard.tier,
+      cardBonus: targetCard.gemBonus,
+      cardIllustration: targetCard.illustration,
+      prestigePointsGained: targetCard.prestigePoints,
+      playerAvatar: player.avatar,
+    },
   };
 
   let nextState: GameState = {
@@ -463,6 +481,15 @@ export function executeReserveCard(
     action: 'reserve_card' as const,
     description: `${player.name} reserved ${cardId ? reservedCard.name : `Tier ${targetTier} card`}${goldAwarded ? ' and gained 1 Gold Joker' : ''}.`,
     timestamp: Date.now(),
+    details: {
+      cardId: reservedCard?.id,
+      cardName: reservedCard?.name,
+      cardTier: (reservedCard?.tier || targetTier) as 1 | 2 | 3,
+      cardBonus: reservedCard?.gemBonus,
+      cardIllustration: reservedCard?.illustration,
+      goldAwarded,
+      playerAvatar: player.avatar,
+    },
   };
 
   const nextState: GameState = {
@@ -539,6 +566,11 @@ export function executeDiscardTokens(
     action: 'discard_tokens' as const,
     description: `${player.name} returned ${discardedCount} excess tokens to the bank.`,
     timestamp: Date.now(),
+    details: {
+      tokens: tokensToDiscard,
+      discardedCount,
+      playerAvatar: player.avatar,
+    },
   };
 
   const nextState: GameState = {
@@ -582,6 +614,11 @@ export function checkNobleVisits(state: GameState, playerIndex: number): GameSta
     action: 'noble_visit' as const,
     description: `Noble Patron ${visitingNoble.name} awarded ${player.name} ${visitingNoble.prestigePoints} Prestige Points!`,
     timestamp: Date.now(),
+    details: {
+      nobleName: visitingNoble.name,
+      prestigePointsGained: visitingNoble.prestigePoints,
+      playerAvatar: player.avatar,
+    },
   };
 
   return {

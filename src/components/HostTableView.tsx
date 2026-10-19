@@ -6,11 +6,12 @@ import { NobleClaimCelebration } from './NobleClaimCelebration.tsx';
 import { ActionHistoryModal } from './ActionHistoryModal.tsx';
 import { RulesModal } from './RulesModal.tsx';
 import { calculateBonuses } from '../game/rules.ts';
-import { NobleTile } from '../types/game.ts';
+import { GameLogEntry, NobleTile } from '../types/game.ts';
 import { ALL_GEMS, ALL_TOKENS } from '../game/constants.ts';
 import { GemIcon } from './GemIcon.tsx';
 import { Crown, Shield, Tv, History, BookOpen, Volume2, VolumeX, RotateCcw, Trophy, Sparkles } from 'lucide-react';
 import { sound } from '../game/sound.ts';
+import { TurnActionNotification } from './TurnActionNotification.tsx';
 
 interface HostTableViewProps {
   publicState: PublicGameState;
@@ -31,8 +32,45 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
     playerName: string;
     isHuman: boolean;
   } | null>(null);
+  const [turnActionPopup, setTurnActionPopup] = useState<GameLogEntry | null>(null);
+  const lastProcessedLogIdRef = React.useRef<string | null>(null);
 
   const activePlayer = publicState.players[publicState.activePlayerIndex] || publicState.players[0];
+
+  // Listen to new actions in the game log to show clean turn action pop-ups
+  React.useEffect(() => {
+    if (!publicState.log || publicState.log.length === 0) return;
+    const latestLog = publicState.log[0];
+
+    // On initial mount, record current log ID to avoid showing stale actions
+    if (lastProcessedLogIdRef.current === null) {
+      lastProcessedLogIdRef.current = latestLog.id;
+      return;
+    }
+
+    // New action occurred!
+    if (latestLog.id !== lastProcessedLogIdRef.current) {
+      lastProcessedLogIdRef.current = latestLog.id;
+
+      // Skip initial game setup entry
+      if (latestLog.id === 'log_0') return;
+
+      // If noble celebration event is already handling fanfare, skip duplicate popup
+      if (latestLog.action === 'noble_visit' && publicState.claimedNobleEvent) {
+        return;
+      }
+
+      // Play relevant action sound if sound enabled
+      if (soundEnabled) {
+        if (latestLog.action === 'buy_card') sound.playBuyCard();
+        else if (latestLog.action === 'take_tokens') sound.playTakeToken();
+        else if (latestLog.action === 'reserve_card') sound.playReserveCard();
+        else if (latestLog.action === 'noble_visit') sound.playNobleVisit();
+      }
+
+      setTurnActionPopup(latestLog);
+    }
+  }, [publicState.log, publicState.claimedNobleEvent, soundEnabled]);
 
   // Listen to noble claim events for fanfare
   React.useEffect(() => {
@@ -50,6 +88,10 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
     setSoundEnabled(next);
     sound.setMuted(!next);
   };
+
+  const popupPlayer = turnActionPopup
+    ? publicState.players.find(p => p.id === turnActionPopup.playerId)
+    : null;
 
   return (
     <div className="min-h-screen bg-[#0B0F1A] text-slate-100 flex flex-col justify-between p-2.5 sm:p-3 lg:p-4 select-none relative overflow-x-hidden font-sans">
@@ -429,6 +471,15 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
         onClose={() => setIsHistoryOpen(false)}
         logs={publicState.log}
       />
+
+      {/* Turn Action Pop-Up after each player's completed move */}
+      {turnActionPopup && (
+        <TurnActionNotification
+          log={turnActionPopup}
+          playerAvatar={popupPlayer?.avatar}
+          onDismiss={() => setTurnActionPopup(null)}
+        />
+      )}
 
       {celebratingNoble && (
         <NobleClaimCelebration
