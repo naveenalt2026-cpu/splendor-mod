@@ -210,7 +210,7 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
         <aside
           className={`relative flex flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-[#121826]/90 border border-white/8 shadow-xl backdrop-blur-md shrink-0 z-10 w-full ${
             publicState.nobles.length > 1
-              ? 'max-w-[280px] xl:max-w-[300px]'
+              ? 'max-w-[288px] xl:max-w-[308px]'
               : 'max-w-[170px] xl:max-w-[180px]'
           } justify-self-center lg:justify-self-end`}
           aria-label="Noble Patrons Dais"
@@ -251,7 +251,7 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
                     className={
                       isSingleLastInRow
                         ? 'col-span-2 flex justify-center w-full'
-                        : 'w-full'
+                        : 'w-full flex justify-center'
                     }
                   >
                     <NobleTileView
