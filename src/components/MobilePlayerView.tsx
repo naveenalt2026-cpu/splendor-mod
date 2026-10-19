@@ -46,8 +46,8 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
 }) => {
   // Navigation tabs: 'personal' (My Hand) vs 'table' (Board)
   const [activeTab, setActiveTab] = useState<'personal' | 'table'>('personal');
-  // Staged action mode
-  const [actionMode, setActionMode] = useState<'none' | 'take_gems' | 'reserve'>('none');
+  // Staged action mode - default to 'take_gems' open in My Hand
+  const [actionMode, setActionMode] = useState<'none' | 'take_gems' | 'reserve'>('take_gems');
   // Staged gems for token collection
   const [stagedGems, setStagedGems] = useState<GemType[]>([]);
   // Detail sheet card selection
@@ -56,6 +56,13 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
   const myPlayer = publicState.players[myPlayerIndex] || publicState.players.find(p => p.id === myPlayerId);
   const isMyTurn = publicState.activePlayerIndex === myPlayerIndex && publicState.status !== 'game_over';
   const activePlayer = publicState.players[publicState.activePlayerIndex];
+
+  // Default to keeping "take_gems" open whenever it is player's turn
+  React.useEffect(() => {
+    if (isMyTurn) {
+      setActionMode(prev => (prev === 'reserve' ? 'reserve' : 'take_gems'));
+    }
+  }, [isMyTurn, publicState.turnCount]);
 
   const bonuses = myPlayer ? calculateBonuses(myPlayer.cards) : { ruby: 0, sapphire: 0, emerald: 0, diamond: 0, onyx: 0 };
   const totalTokens = myPlayer ? Object.values(myPlayer.tokens).reduce((acc, c) => acc + c, 0) : 0;
@@ -97,7 +104,7 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
     sound.playTokenDrop();
     onSendAction({ type: 'take_tokens', gems: stagedGems });
     setStagedGems([]);
-    setActionMode('none');
+    setActionMode('take_gems');
   };
 
   // Submit buy card
@@ -105,7 +112,7 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
     sound.playBuyCard();
     onSendAction({ type: 'buy_card', cardId, fromReserved });
     setInspectingCard(null);
-    setActionMode('none');
+    setActionMode('take_gems');
   };
 
   // Submit reserve card
@@ -113,14 +120,14 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
     sound.playTokenPickup();
     onSendAction({ type: 'reserve_card', cardId });
     setInspectingCard(null);
-    setActionMode('none');
+    setActionMode('take_gems');
   };
 
   // Submit blind deck reserve
   const handleReserveDeck = (tier: 1 | 2 | 3) => {
     sound.playTokenPickup();
     onSendAction({ type: 'reserve_deck', tier });
-    setActionMode('none');
+    setActionMode('take_gems');
   };
 
   const gemValidation = canTakeTokens(stagedGems, publicState.bank);
