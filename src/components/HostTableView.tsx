@@ -122,30 +122,30 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
         </div>
       </header>
 
-      {/* Subheader: Small Horizontal Gem Bank Strip (no gem names, just icons + numbers) */}
+      {/* Subheader: Horizontal Gem Bank Strip - Centered */}
       <section
-        className="w-full max-w-[1536px] mx-auto mt-2 px-3 sm:px-4 py-1.5 rounded-xl bg-[#121826]/90 border border-white/8 backdrop-blur-md flex items-center justify-between gap-3 shadow-md z-20"
-        aria-label="Bank Tokens"
+        className="w-full max-w-[1536px] mx-auto mt-2 px-4 py-2 rounded-xl bg-[#121826]/90 border border-white/8 backdrop-blur-md flex items-center justify-center gap-3 sm:gap-6 flex-wrap shadow-md z-20"
+        aria-label="Gem Bank Tokens"
       >
-        <div className="flex items-center gap-1.5 shrink-0">
-          <Sparkles size={13} className="text-amber-400" />
-          <span className="font-['Cinzel'] font-bold text-xs uppercase tracking-wider text-amber-200">
-            Bank
+        <div className="flex items-center gap-1.5 shrink-0 pr-3 sm:pr-5 border-r border-white/10">
+          <Sparkles size={14} className="text-amber-400" />
+          <span className="font-['Cinzel'] font-black text-xs sm:text-sm uppercase tracking-wider text-amber-200">
+            GEM BANK
           </span>
         </div>
 
-        <div className="flex items-center justify-end gap-2 sm:gap-3 md:gap-5 flex-wrap">
+        <div className="flex items-center justify-center gap-2 sm:gap-3 md:gap-4 flex-wrap">
           {ALL_TOKENS.map(t => {
             const count = publicState.bank[t] || 0;
             return (
               <div
                 key={t}
-                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border transition-all ${
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all ${
                   count > 0
-                    ? 'bg-[#0B0F1A]/80 border-white/10 text-white'
-                    : 'bg-white/5 border-transparent text-slate-500 opacity-30'
+                    ? 'bg-[#0B0F1A] border-white/10 text-white shadow-xs'
+                    : 'bg-white/5 border-transparent text-slate-500 opacity-25'
                 }`}
-                title={`${t}: ${count} available in bank`}
+                title={`${t}: ${count} available in gem bank`}
               >
                 <GemIcon
                   type={t}
@@ -164,9 +164,9 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
 
       {/* Main Playing Arena: 3 Columns (Left: Nobles Dais | Center: Cards Arena | Right: Scoreboard) */}
       <main className="relative flex-1 max-w-[1536px] w-full mx-auto py-2.5 sm:py-3.5 flex flex-col lg:flex-row items-stretch lg:items-start justify-between gap-3 lg:gap-4 z-10 overflow-y-auto">
-        {/* Left Column: Noble Patrons Dais (Zero scroll, compact responsive grid) */}
+        {/* Left Column: Noble Patrons Dais (Reduced width, zero scroll, sleek cameo tiles) */}
         <aside
-          className="relative flex flex-col items-center justify-start p-3 rounded-2xl bg-[#121826]/90 border border-white/8 shadow-xl backdrop-blur-md shrink-0 z-10 w-full lg:w-56 xl:w-64"
+          className="relative flex flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-[#121826]/90 border border-white/8 shadow-xl backdrop-blur-md shrink-0 z-10 w-full lg:w-44 xl:w-48"
           aria-label="Noble Patrons Dais"
         >
           <div className="flex items-center justify-between gap-1.5 mb-2 pb-2 border-b border-white/10 w-full px-1">
@@ -187,10 +187,10 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
             </div>
           ) : (
             <div
-              className={`w-full gap-2 ${
+              className={`w-full gap-2.5 ${
                 publicState.nobles.length > 3
                   ? 'grid grid-cols-2'
-                  : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1'
+                  : 'flex flex-col'
               }`}
             >
               {publicState.nobles.map(noble => (
