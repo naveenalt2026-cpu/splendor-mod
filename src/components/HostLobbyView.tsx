@@ -1,11 +1,27 @@
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { Crown, Users, Sparkles, Copy, Check, Tv, Bot, ArrowRight, Shield, RefreshCw } from 'lucide-react';
+import {
+  Crown,
+  Users,
+  Sparkles,
+  Copy,
+  Check,
+  Tv,
+  Bot,
+  ArrowRight,
+  Shield,
+  RefreshCw,
+  Globe,
+  Wifi,
+  ExternalLink,
+} from 'lucide-react';
 import { SessionPlayer } from '../types/multiplayer.ts';
 
 interface HostLobbyViewProps {
   sessionId: string;
   joinUrl: string;
+  internetJoinUrl?: string | null;
+  lanJoinUrl?: string | null;
   players: SessionPlayer[];
   canStart: boolean;
   onStartGame: () => void;
@@ -17,6 +33,8 @@ interface HostLobbyViewProps {
 export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
   sessionId,
   joinUrl,
+  internetJoinUrl,
+  lanJoinUrl,
   players,
   canStart,
   onStartGame,
@@ -25,9 +43,24 @@ export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
   onCreateNewRoom,
 }) => {
   const [copied, setCopied] = useState(false);
+  const [networkMode, setNetworkMode] = useState<'internet' | 'lan'>('internet');
+
+  // Compute the active scannable URL according to user's network selection
+  const activeJoinUrl = (() => {
+    if (networkMode === 'lan' && lanJoinUrl) {
+      return lanJoinUrl;
+    }
+    if (internetJoinUrl) {
+      return internetJoinUrl;
+    }
+    if (joinUrl && !joinUrl.includes('localhost') && !joinUrl.includes('127.0.0.1')) {
+      return joinUrl.replace(/^http:/, 'https:').replace('ais-dev-', 'ais-pre-');
+    }
+    return `https://ais-pre-uxxuhyirj6wwedrsnxj43u-748355567623.asia-east1.run.app/?session=${sessionId}&role=player`;
+  })();
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(joinUrl);
+    navigator.clipboard.writeText(activeJoinUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
@@ -87,18 +120,52 @@ export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
 
       {/* Main Center Area: Large QR Code + Room Code + Live Player Slots */}
       <main className="w-full max-w-5xl flex-1 flex flex-col lg:flex-row items-center justify-center gap-8 my-6 z-10">
-        {/* Left Column: Huge QR Code Card */}
-        <div className="flex flex-col items-center bg-[#121826] border border-white/8 p-6 sm:p-8 rounded-3xl shadow-xl text-center max-w-md w-full">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-['Cinzel'] font-bold mb-4">
-            <Sparkles size={14} className="text-amber-400" />
-            <span>SCAN WITH MOBILE CAMERA TO JOIN</span>
+        {/* Left Column: Huge QR Code Card with Network Selector */}
+        <div className="flex flex-col items-center bg-[#121826] border border-white/8 p-6 sm:p-7 rounded-3xl shadow-xl text-center max-w-md w-full">
+          {/* Network Mode Switcher: Any Network (Internet) vs Local Wi-Fi (LAN) */}
+          <div className="w-full mb-3.5 flex flex-col gap-1.5">
+            <div className="flex items-center justify-center p-1 rounded-xl bg-black/60 border border-white/10 gap-1">
+              <button
+                type="button"
+                onClick={() => setNetworkMode('internet')}
+                className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-['Cinzel'] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  networkMode === 'internet'
+                    ? 'bg-amber-400 text-slate-950 shadow-md font-black scale-[1.02]'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Globe size={13} />
+                <span>Any Network</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setNetworkMode('lan')}
+                className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-['Cinzel'] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  networkMode === 'lan'
+                    ? 'bg-amber-400 text-slate-950 shadow-md font-black scale-[1.02]'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Wifi size={13} />
+                <span>Local Wi-Fi</span>
+              </button>
+            </div>
+
+            <div className="flex items-center justify-center gap-1.5 text-[11px] text-amber-200/90 text-center px-1">
+              <Sparkles size={12} className="text-amber-400 shrink-0" />
+              <span>
+                {networkMode === 'internet'
+                  ? 'Join from cellular data (5G/4G), different Wi-Fi, or remotely!'
+                  : 'Local Wi-Fi: Devices must share the same local router.'}
+              </span>
+            </div>
           </div>
 
           {/* Large High-Contrast QR Code */}
           <div className="p-4 bg-[#0B0F1A] rounded-2xl border border-white/10 shadow-xl relative group">
             <QRCodeSVG
-              value={joinUrl}
-              size={230}
+              value={activeJoinUrl}
+              size={220}
               bgColor="#090d16"
               fgColor="#fbbf24"
               level="H"
@@ -108,7 +175,7 @@ export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
           </div>
 
           {/* Room Code Display */}
-          <div className="mt-5 w-full">
+          <div className="mt-4 w-full">
             <div className="text-[11px] font-['Cinzel'] tracking-widest text-slate-400 uppercase">
               Room Code
             </div>
@@ -130,10 +197,31 @@ export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
               ) : (
                 <>
                   <Copy size={14} className="text-amber-400" />
-                  <span>Copy Mobile Join Link</span>
+                  <span>Copy {networkMode === 'internet' ? 'Public' : 'Wi-Fi'} Join Link</span>
                 </>
               )}
             </button>
+
+            {/* Direct manual mobile connection helper */}
+            <div className="mt-3 p-2.5 rounded-xl bg-black/40 border border-white/5 text-[11px] text-slate-400 text-left">
+              <span className="text-amber-300/90 font-bold block mb-0.5">
+                Join from Any Network or Phone:
+              </span>
+              <span>1. Scan the QR code above with your camera</span>
+              <br />
+              <span>
+                2. Or open:{' '}
+                <a
+                  href={activeJoinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-amber-300 underline font-mono text-[10px] break-all inline-flex items-center gap-1"
+                >
+                  <span>{activeJoinUrl}</span>
+                  <ExternalLink size={10} className="shrink-0" />
+                </a>
+              </span>
+            </div>
           </div>
         </div>
 
@@ -164,55 +252,52 @@ export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
               At least 2 players must join. Once everyone is in, press "Start Match" to launch the Table View.
             </p>
 
-            {/* 4 Player Slots Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {[0, 1, 2, 3].map(slotIndex => {
-                const player = players[slotIndex];
+            {/* Player Slots Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              {[0, 1, 2, 3].map((slotIdx) => {
+                const player = players[slotIdx];
+                if (player) {
+                  return (
+                    <div
+                      key={player.id}
+                      className="p-3.5 rounded-2xl bg-[#0B0F1A] border-2 border-amber-400/80 shadow-[0_0_15px_rgba(245,158,11,0.2)] flex items-center gap-3 animate-fade-in"
+                    >
+                      <div className="w-11 h-11 rounded-xl bg-slate-900 border border-amber-500/40 flex items-center justify-center text-2xl shadow-inner shrink-0">
+                        {player.avatar || '👑'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-['Cinzel'] font-bold text-sm text-amber-100 truncate flex items-center gap-1.5">
+                          <span>{player.name}</span>
+                          {player.isAI && (
+                            <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.2 rounded font-sans">
+                              AI
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1 mt-0.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          <span>Connected</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <div
-                    key={slotIndex}
-                    className={`p-3.5 rounded-2xl border transition-all flex items-center gap-3 ${
-                      player
-                        ? 'bg-[#121826] border-amber-400/60 shadow-lg ring-1 ring-amber-400/30'
-                        : 'bg-[#121826]/40 border-dashed border-white/10 text-slate-600'
-                    }`}
+                    key={`slot-${slotIdx}`}
+                    className="p-3.5 rounded-2xl bg-[#121826]/40 border border-dashed border-white/10 flex items-center gap-3 opacity-60"
                   >
-                    <div
-                      className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl border ${
-                        player
-                          ? 'bg-[#0B0F1A] border-amber-400/50 shadow'
-                          : 'bg-[#0B0F1A] border-white/5 text-slate-700'
-                      }`}
-                    >
-                      {player ? player.avatar : slotIndex + 1}
+                    <div className="w-11 h-11 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-slate-500 font-['Cinzel'] font-bold shrink-0">
+                      {slotIdx + 1}
                     </div>
-
-                    <div className="flex-1 min-w-0">
-                      {player ? (
-                        <>
-                          <div className="font-['Cinzel'] font-bold text-slate-100 text-sm truncate flex items-center gap-1.5">
-                            <span>{player.name}</span>
-                            {player.isAI && (
-                              <span className="text-[9px] bg-white/10 text-slate-300 px-1 rounded">
-                                AI
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                            <span>Connected & Ready</span>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="text-xs text-slate-400 font-['Cinzel']">
-                            Slot {slotIndex + 1} Open
-                          </div>
-                          <div className="text-[10px] text-slate-500">
-                            Scan QR code to join
-                          </div>
-                        </>
-                      )}
+                    <div>
+                      <div className="font-['Cinzel'] text-xs text-slate-400">
+                        Slot {slotIdx + 1} Open
+                      </div>
+                      <div className="text-[11px] text-slate-500">
+                        Scan QR code to join
+                      </div>
                     </div>
                   </div>
                 );
@@ -220,34 +305,41 @@ export const HostLobbyView: React.FC<HostLobbyViewProps> = ({
             </div>
           </div>
 
-          {/* Action / Launch Bar */}
-          <div className="mt-8 pt-4 border-t border-white/8 flex flex-col gap-3">
+          {/* Bottom Action Area: Start Match */}
+          <div className="flex flex-col gap-2 pt-4 border-t border-white/8">
             <button
               type="button"
               disabled={!canStart}
               onClick={onStartGame}
-              className={`w-full py-4 px-6 rounded-2xl font-['Cinzel'] font-black text-lg tracking-wider uppercase flex items-center justify-center gap-2 shadow-2xl transition-all ${
+              className={`w-full py-3.5 px-6 rounded-2xl font-['Cinzel'] font-black text-sm tracking-widest flex items-center justify-center gap-2 transition-all ${
                 canStart
-                  ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 ring-4 ring-amber-400/30 shadow-[0_0_25px_rgba(245,158,11,0.4)] cursor-pointer active:scale-95'
-                  : 'bg-white/5 text-slate-600 border border-white/5 cursor-not-allowed opacity-60'
+                  ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-[0_0_30px_rgba(245,158,11,0.4)] cursor-pointer hover:scale-[1.01] active:scale-95'
+                  : 'bg-white/5 text-slate-500 border border-white/5 cursor-not-allowed opacity-50'
               }`}
             >
               <span>START MULTIPLAYER MATCH</span>
-              <ArrowRight size={22} className="stroke-[3]" />
+              <ArrowRight size={16} className="stroke-[2.5]" />
             </button>
 
-            <div className="text-center text-xs text-slate-400">
-              {canStart
-                ? 'All set! Press Start Match to launch the shared Table View.'
-                : `Need ${Math.max(0, 2 - players.length)} more player(s) to commence.`}
+            <div className="text-center text-xs text-slate-400 min-h-[20px]">
+              {!canStart && (
+                <span>
+                  Need {Math.max(0, 2 - players.length)} more player(s) to commence.
+                </span>
+              )}
+              {canStart && (
+                <span className="text-emerald-400 font-semibold">
+                  Ready! Press button above to launch the Table View.
+                </span>
+              )}
             </div>
           </div>
         </div>
       </main>
 
-      {/* Footer Info */}
-      <footer className="text-center text-xs text-slate-500 font-['Cinzel'] z-10">
-        Renaissance Tabletop Engine • Server-Authoritative Splendor
+      {/* Footer Branding */}
+      <footer className="text-xs text-slate-500 font-['Cinzel'] z-10 text-center">
+        Renaissance Tabletop Engine • Cross-Network Splendor
       </footer>
     </div>
   );

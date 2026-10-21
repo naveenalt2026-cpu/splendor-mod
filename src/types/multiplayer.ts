@@ -79,7 +79,13 @@ export type ClientMessage =
   | { type: 'ping' };
 
 export type ServerMessage =
-  | { type: 'session_created'; sessionId: string; joinUrl: string }
+  | {
+      type: 'session_created';
+      sessionId: string;
+      joinUrl: string;
+      internetJoinUrl?: string;
+      lanJoinUrl?: string;
+    }
   | { type: 'session_closed'; message: string }
   | { type: 'player_join_success'; sessionId: string; playerId: string; playerIndex: number; publicState: PublicGameState; privateState: PrivatePlayerState }
   | { type: 'session_lobby_update'; sessionId: string; players: SessionPlayer[]; canStart: boolean }

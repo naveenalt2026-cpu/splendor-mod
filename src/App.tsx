@@ -65,6 +65,8 @@ export default function App() {
     isReconnecting,
     sessionId,
     joinUrl,
+    internetJoinUrl,
+    lanJoinUrl,
     myPlayerId,
     myPlayerIndex,
     publicState,
@@ -113,6 +115,8 @@ export default function App() {
           <HostLobbyView
             sessionId={sessionId || 'INITIALIZING...'}
             joinUrl={joinUrl || `${window.location.origin}/?session=${sessionId || ''}&role=player`}
+            internetJoinUrl={internetJoinUrl}
+            lanJoinUrl={lanJoinUrl}
             players={lobbyPlayers}
             canStart={canStart}
             onStartGame={startHostGame}

@@ -2,9 +2,17 @@ import express from 'express';
 import http from 'http';
 import path from 'path';
 import os from 'os';
+import { fileURLToPath } from 'url';
 import { WebSocketServer, WebSocket } from 'ws';
 import { sessionManager } from './src/server/sessionManager.ts';
 import { ClientMessage } from './src/types/multiplayer.ts';
+
+// ES Module __dirname and __filename resolution
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Port configuration (Cloud Run provides PORT environment variable)
+const PORT = process.env.PORT || 3000;
 
 export function getLocalNetworkIp(): string {
   const interfaces = os.networkInterfaces();
@@ -28,9 +36,39 @@ export function getLocalNetworkIp(): string {
   return 'localhost';
 }
 
+export function getNetworkUrls(sessionId: string, req: any) {
+  const forwardedHost = (req?.headers?.['x-forwarded-host'] as string) || '';
+  const host = forwardedHost || (req?.headers?.host as string) || '';
+  const proto = (req?.headers?.['x-forwarded-proto'] as string) || 'https';
+
+  const lanIp = getLocalNetworkIp();
+  const lanJoinUrl = lanIp !== 'localhost'
+    ? `http://${lanIp}:${PORT}/?session=${sessionId}&role=player`
+    : `http://localhost:${PORT}/?session=${sessionId}&role=player`;
+
+  // Determine Internet / Any Network URL:
+  let internetJoinUrl = '';
+  if (process.env.PUBLIC_URL) {
+    const cleanPublic = process.env.PUBLIC_URL.replace(/\/+$/, '');
+    internetJoinUrl = `${cleanPublic}/?session=${sessionId}&role=player`;
+  } else if (host.includes('run.app') || host.includes('aistudio')) {
+    const publicHost = host.replace(/^ais-dev-/, 'ais-pre-');
+    internetJoinUrl = `https://${publicHost}/?session=${sessionId}&role=player`;
+  } else if (host && !host.startsWith('localhost') && !host.startsWith('127.0.0.1') && !host.startsWith('172.') && !host.startsWith('10.')) {
+    internetJoinUrl = `${proto}://${host}/?session=${sessionId}&role=player`;
+  } else {
+    // Default public cloud URL accessible from any mobile cellular / external network
+    internetJoinUrl = `https://ais-pre-uxxuhyirj6wwedrsnxj43u-748355567623.asia-east1.run.app/?session=${sessionId}&role=player`;
+  }
+
+  // Default join URL: prefer internet URL so people on different networks / cellular data can join seamlessly
+  const joinUrl = internetJoinUrl || lanJoinUrl;
+
+  return { joinUrl, internetJoinUrl, lanJoinUrl };
+}
+
 const app = express();
 const server = http.createServer(app);
-const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
@@ -54,6 +92,58 @@ app.get('/api/sessions/:id', (req, res) => {
   });
 });
 
+// REST Fallback: Join Session from phone or external network via HTTP
+app.post('/api/sessions/:id/join', (req, res) => {
+  const session = sessionManager.getSession(req.params.id);
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+
+  const { playerName, avatar, playerId } = req.body;
+  const mockWs = {
+    readyState: WebSocket.OPEN,
+    send: () => {},
+  } as any;
+
+  const result = sessionManager.addPlayer(session.sessionId, playerName, avatar, mockWs, playerId);
+  if ('error' in result) {
+    return res.status(400).json({ error: result.error });
+  }
+
+  const publicState = sessionManager.getPublicState(session.sessionId);
+  const privateState = sessionManager.getPrivateState(session.sessionId, result.player.id);
+  sessionManager.broadcastLobbyUpdate(session.sessionId);
+
+  res.json({
+    sessionId: session.sessionId,
+    playerId: result.player.id,
+    playerIndex: result.player.playerIndex,
+    publicState,
+    privateState,
+  });
+});
+
+// REST Fallback: Send Player Action via HTTP
+app.post('/api/sessions/:id/action', (req, res) => {
+  const { playerId, action } = req.body;
+  const result = sessionManager.handlePlayerAction(req.params.id, playerId, action);
+  if (!result.success) {
+    return res.status(400).json({ error: result.error });
+  }
+  sessionManager.broadcastToSession(req.params.id);
+  const publicState = sessionManager.getPublicState(req.params.id);
+  const privateState = sessionManager.getPrivateState(req.params.id, playerId);
+  res.json({ success: true, publicState, privateState });
+});
+
+// REST Fallback: Poll session state via HTTP
+app.get('/api/sessions/:id/state', (req, res) => {
+  const session = sessionManager.getSession(req.params.id);
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+  const playerId = req.query.playerId as string;
+  const publicState = sessionManager.getPublicState(session.sessionId);
+  const privateState = playerId ? sessionManager.getPrivateState(session.sessionId, playerId) : null;
+  res.json({ publicState, privateState });
+});
+
 // WebSocket Server attached directly to HTTP server on /ws
 const wss = new WebSocketServer({ server, path: '/ws' });
 
@@ -72,21 +162,15 @@ wss.on('connection', (ws: WebSocket, req) => {
           boundSessionId = session.sessionId;
           isHost = true;
 
-          let effectiveHost = req.headers.host || `localhost:${PORT}`;
-          if (effectiveHost.startsWith('localhost') || effectiveHost.startsWith('127.0.0.1')) {
-            const lanIp = getLocalNetworkIp();
-            if (lanIp !== 'localhost') {
-              effectiveHost = effectiveHost.replace(/^(localhost|127\.0\.0\.1)/, lanIp);
-            }
-          }
-          const proto = req.headers['x-forwarded-proto'] || 'http';
-          const joinUrl = `${proto}://${effectiveHost}/?session=${session.sessionId}&role=player`;
+          const { joinUrl, internetJoinUrl, lanJoinUrl } = getNetworkUrls(session.sessionId, req);
 
           ws.send(
             JSON.stringify({
               type: 'session_created',
               sessionId: session.sessionId,
               joinUrl,
+              internetJoinUrl,
+              lanJoinUrl,
             })
           );
           sessionManager.broadcastLobbyUpdate(session.sessionId);
@@ -100,21 +184,15 @@ wss.on('connection', (ws: WebSocket, req) => {
             sessionManager.setHostSocket(session.sessionId, ws);
             boundSessionId = session.sessionId;
 
-            let effectiveHost = req.headers.host || `localhost:${PORT}`;
-            if (effectiveHost.startsWith('localhost') || effectiveHost.startsWith('127.0.0.1')) {
-              const lanIp = getLocalNetworkIp();
-              if (lanIp !== 'localhost') {
-                effectiveHost = effectiveHost.replace(/^(localhost|127\.0\.0\.1)/, lanIp);
-              }
-            }
-            const proto = req.headers['x-forwarded-proto'] || 'http';
-            const joinUrl = `${proto}://${effectiveHost}/?session=${session.sessionId}&role=player`;
+            const { joinUrl, internetJoinUrl, lanJoinUrl } = getNetworkUrls(session.sessionId, req);
 
             ws.send(
               JSON.stringify({
                 type: 'session_created',
                 sessionId: session.sessionId,
                 joinUrl,
+                internetJoinUrl,
+                lanJoinUrl,
               })
             );
 
@@ -124,8 +202,6 @@ wss.on('connection', (ws: WebSocket, req) => {
             } else if (publicState) {
               ws.send(JSON.stringify({ type: 'game_state_sync', publicState }));
             }
-          } else {
-            ws.send(JSON.stringify({ type: 'action_error', message: 'Host session expired or not found.' }));
           }
           break;
         }

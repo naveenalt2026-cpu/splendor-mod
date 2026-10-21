@@ -42,6 +42,8 @@ export function useMultiplayerSocket() {
     validStoredPlayer?.sessionId || urlSession || initialHostStored?.sessionId || null
   );
   const [joinUrl, setJoinUrl] = useState<string | null>(null);
+  const [internetJoinUrl, setInternetJoinUrl] = useState<string | null>(null);
+  const [lanJoinUrl, setLanJoinUrl] = useState<string | null>(null);
   const [isHost, setIsHost] = useState(Boolean(initialHostStored?.sessionId && !validStoredPlayer));
   const [myPlayerId, setMyPlayerId] = useState<string | null>(validStoredPlayer?.playerId || null);
   const [myPlayerIndex, setMyPlayerIndex] = useState<number | null>(
@@ -136,6 +138,8 @@ export function useMultiplayerSocket() {
           case 'session_created':
             setSessionId(msg.sessionId);
             setJoinUrl(msg.joinUrl);
+            if (msg.internetJoinUrl) setInternetJoinUrl(msg.internetJoinUrl);
+            if (msg.lanJoinUrl) setLanJoinUrl(msg.lanJoinUrl);
             setIsHost(true);
             setIsReconnecting(false);
             activeSessionRef.current.isHost = true;
@@ -499,6 +503,8 @@ export function useMultiplayerSocket() {
     isReconnecting,
     sessionId,
     joinUrl,
+    internetJoinUrl,
+    lanJoinUrl,
     isHost,
     myPlayerId,
     myPlayerIndex,
