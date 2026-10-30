@@ -9,11 +9,9 @@ import { calculateBonuses } from '../game/rules.ts';
 import { GameLogEntry, NobleTile, GemType, TokenType } from '../types/game.ts';
 import { ALL_GEMS, ALL_TOKENS } from '../game/constants.ts';
 import { GemIcon } from './GemIcon.tsx';
-import { Crown, Shield, Tv, History, BookOpen, Volume2, VolumeX, RotateCcw, Trophy, Sparkles, Zap, PlusCircle, LogOut, GraduationCap } from 'lucide-react';
+import { Crown, Shield, Tv, History, BookOpen, Volume2, VolumeX, RotateCcw, Trophy, Sparkles, Zap, PlusCircle, LogOut } from 'lucide-react';
 import { sound } from '../game/sound.ts';
 import { TurnActionNotification } from './TurnActionNotification.tsx';
-import { InteractiveTutorialOverlay } from './InteractiveTutorialOverlay.tsx';
-import { hasSeenInteractiveTutorial } from '../utils/tutorialStorage.ts';
 
 interface HostTableViewProps {
   publicState: PublicGameState;
@@ -28,7 +26,6 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
   onExitHost,
   onCreateNewRoom,
 }) => {
-  const [isTutorialOpen, setIsTutorialOpen] = useState(() => !hasSeenInteractiveTutorial());
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isRulesOpen, setIsRulesOpen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -136,10 +133,7 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
           </div>
 
           {/* Gem Bank Pill inside Header */}
-          <div
-            data-tutorial-target="gem-bank"
-            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-[#070B14]/95 border border-amber-500/25 shadow-md shrink-0"
-          >
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-[#070B14]/95 border border-amber-500/25 shadow-md shrink-0">
             <div className="flex items-center gap-1 pr-1.5 sm:pr-2 border-r border-white/10">
               <Sparkles size={15} className="text-amber-400 shrink-0" />
               <span className="font-['Cinzel'] font-bold text-xs uppercase tracking-wider text-amber-200 hidden md:inline">
@@ -184,15 +178,6 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
             title={soundEnabled ? 'Mute Audio' : 'Unmute Audio'}
           >
             {soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsTutorialOpen(true)}
-            className="px-2 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:text-amber-200 hover:bg-amber-500/25 transition-colors cursor-pointer flex items-center gap-1 text-xs font-['Cinzel'] font-bold"
-            title="Interactive Tutorial Guide"
-          >
-            <GraduationCap size={14} />
-            <span className="hidden xl:inline">Tutorial</span>
           </button>
           <button
             type="button"
@@ -252,7 +237,6 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
       <main className="relative flex-1 max-w-[1536px] w-full mx-auto py-2.5 sm:py-3.5 flex flex-col lg:grid lg:grid-cols-[1fr_auto_1fr] items-center lg:items-start justify-center gap-4 lg:gap-6 z-10 overflow-y-auto">
         {/* Left Column: Noble Patrons Dais (Zero overflow, 2 in 1st row & 1 centered in 2nd row when 3 nobles) */}
         <aside
-          data-tutorial-target="nobles-dais"
           className={`relative flex flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-[#070B14]/95 border border-amber-500/20 shadow-2xl backdrop-blur-md shrink-0 z-10 w-full ${
             publicState.nobles.length > 1
               ? 'max-w-[296px] xl:max-w-[316px]'
@@ -315,7 +299,6 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
 
         {/* Center Column: Three Horizontal Rows of Development Cards (Tier 3 -> Tier 2 -> Tier 1) */}
         <section
-          data-tutorial-target="development-cards"
           className="flex flex-col gap-1.5 sm:gap-2 shrink-0 justify-self-center mx-auto overflow-x-auto p-2 sm:p-2.5"
           aria-label="Development Cards Arena"
         >
@@ -381,7 +364,6 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
 
         {/* Right Column: Player Game Details Scoreboard */}
         <aside
-          data-tutorial-target="buying-power"
           className="relative flex flex-col gap-2 w-full max-w-[288px] xl:max-w-[316px] shrink-0 z-10 justify-self-center lg:justify-self-start"
           aria-label="Players Scoreboard"
         >
@@ -545,19 +527,7 @@ export const HostTableView: React.FC<HostTableViewProps> = ({
       </main>
 
       {/* Modals & Celebrations */}
-      <InteractiveTutorialOverlay
-        isOpen={isTutorialOpen}
-        onClose={() => setIsTutorialOpen(false)}
-        variant="desktop"
-      />
-      <RulesModal
-        isOpen={isRulesOpen}
-        onClose={() => setIsRulesOpen(false)}
-        onLaunchTutorial={() => {
-          setIsRulesOpen(false);
-          setIsTutorialOpen(true);
-        }}
-      />
+      <RulesModal isOpen={isRulesOpen} onClose={() => setIsRulesOpen(false)} />
       <ActionHistoryModal
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}

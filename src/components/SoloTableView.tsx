@@ -33,8 +33,6 @@ import { RulesModal } from './RulesModal.tsx';
 import { ActionHistoryModal } from './ActionHistoryModal.tsx';
 import { GameSettingsModal } from './GameSettingsModal.tsx';
 import { DiscardTokensModal } from './DiscardTokensModal.tsx';
-import { InteractiveTutorialOverlay } from './InteractiveTutorialOverlay.tsx';
-import { hasSeenInteractiveTutorial } from '../utils/tutorialStorage.ts';
 import {
   Crown,
   Shield,
@@ -53,7 +51,6 @@ import {
   Layers,
   ArrowRight,
   Bookmark,
-  GraduationCap,
 } from 'lucide-react';
 
 interface SoloTableViewProps {
@@ -83,7 +80,6 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
   const [isReservedDrawerOpen, setIsReservedDrawerOpen] = useState(false);
 
   // Modals & Celebrations
-  const [isTutorialOpen, setIsTutorialOpen] = useState(() => !hasSeenInteractiveTutorial());
   const [isRulesOpen, setIsRulesOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -334,10 +330,7 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
           </div>
 
           {/* Interactive Gem Bank Pill inside Header */}
-          <div
-            data-tutorial-target="gem-bank"
-            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-[#070B14]/95 border border-amber-500/25 shadow-md shrink-0"
-          >
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full bg-[#070B14]/95 border border-amber-500/25 shadow-md shrink-0">
             <div className="flex items-center gap-1 pr-1.5 sm:pr-2 border-r border-white/10">
               <Sparkles size={15} className="text-amber-400 shrink-0" />
               <span className="font-['Cinzel'] font-bold text-xs uppercase tracking-wider text-amber-200 hidden md:inline">
@@ -437,15 +430,6 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
           </button>
           <button
             type="button"
-            onClick={() => setIsTutorialOpen(true)}
-            className="px-2 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:text-amber-200 hover:bg-amber-500/25 transition-colors cursor-pointer flex items-center gap-1 text-xs font-['Cinzel'] font-bold"
-            title="Interactive Tutorial Guide"
-          >
-            <GraduationCap size={14} />
-            <span className="hidden xl:inline">Tutorial</span>
-          </button>
-          <button
-            type="button"
             onClick={() => setIsRulesOpen(true)}
             className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:text-amber-300 hover:border-amber-500/40 transition-colors cursor-pointer"
             title="Splendor Rules"
@@ -499,7 +483,6 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
       <main className="relative flex-1 max-w-[1536px] w-full mx-auto py-2.5 sm:py-3.5 flex flex-col lg:grid lg:grid-cols-[1fr_auto_1fr] items-center lg:items-start justify-center gap-4 lg:gap-6 z-10 overflow-y-auto">
         {/* Left Column: Noble Patrons Dais (Zero overflow, 2 in 1st row & 1 centered in 2nd row when 3 nobles) */}
         <aside
-          data-tutorial-target="nobles-dais"
           className={`relative flex flex-col items-center justify-start p-2.5 sm:p-3 rounded-2xl bg-[#070B14]/95 border border-amber-500/20 shadow-2xl backdrop-blur-md shrink-0 z-10 w-full ${
             state.nobles.length > 1
               ? 'max-w-[296px] xl:max-w-[316px]'
@@ -559,7 +542,6 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
 
         {/* Center Column: Three Horizontal Rows of Development Cards (Tier 3 -> Tier 2 -> Tier 1) */}
         <section
-          data-tutorial-target="development-cards"
           className="flex flex-col gap-1.5 sm:gap-2 shrink-0 justify-self-center mx-auto overflow-x-auto p-2 sm:p-2.5"
           aria-label="Development Cards Arena"
         >
@@ -698,7 +680,6 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
 
         {/* Right Column: Player Game Details Scoreboard matching HostTableView */}
         <aside
-          data-tutorial-target="buying-power"
           className="relative flex flex-col gap-2 w-full max-w-[288px] xl:max-w-[316px] shrink-0 z-10 justify-self-center lg:justify-self-start p-1"
           aria-label="Players Scoreboard"
         >
@@ -940,22 +921,8 @@ export const SoloTableView: React.FC<SoloTableViewProps> = ({ onExitSolo }) => {
         />
       )}
 
-      {/* Interactive First-Time Overlay Tutorial */}
-      <InteractiveTutorialOverlay
-        isOpen={isTutorialOpen}
-        onClose={() => setIsTutorialOpen(false)}
-        variant="desktop"
-      />
-
       {/* Rules Modal */}
-      <RulesModal
-        isOpen={isRulesOpen}
-        onClose={() => setIsRulesOpen(false)}
-        onLaunchTutorial={() => {
-          setIsRulesOpen(false);
-          setIsTutorialOpen(true);
-        }}
-      />
+      <RulesModal isOpen={isRulesOpen} onClose={() => setIsRulesOpen(false)} />
 
       {/* Move History Modal */}
       <ActionHistoryModal

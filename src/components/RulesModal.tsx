@@ -1,15 +1,14 @@
 import React from 'react';
-import { X, Trophy, Coins, BookmarkCheck, Shield, Sparkles, GraduationCap } from 'lucide-react';
+import { X, Trophy, Coins, BookmarkCheck, Shield, Sparkles } from 'lucide-react';
 import { ALL_GEMS, GEM_COLORS } from '../game/constants.ts';
 import { GemIcon } from './GemIcon.tsx';
 
 interface RulesModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLaunchTutorial?: () => void;
 }
 
-export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose, onLaunchTutorial }) => {
+export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
@@ -22,32 +21,20 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose, onLaunc
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-amber-500/30 mb-4 gap-2">
+        <div className="flex items-center justify-between pb-3 border-b border-amber-500/30 mb-4">
           <div className="flex items-center gap-2">
-            <Trophy className="text-amber-400 shrink-0" size={24} />
-            <h2 className="font-['Cinzel'] font-bold text-amber-200 text-lg sm:text-xl tracking-wider uppercase">
+            <Trophy className="text-amber-400" size={24} />
+            <h2 className="font-['Cinzel'] font-bold text-amber-200 text-xl tracking-wider uppercase">
               Splendor Rules & Codex
             </h2>
           </div>
-          <div className="flex items-center gap-2">
-            {onLaunchTutorial && (
-              <button
-                type="button"
-                onClick={onLaunchTutorial}
-                className="px-3 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-['Cinzel'] font-bold text-xs flex items-center gap-1.5 shadow transition-colors cursor-pointer"
-              >
-                <GraduationCap size={15} />
-                <span>Interactive Guide</span>
-              </button>
-            )}
-            <button
-              onClick={onClose}
-              className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-              aria-label="Close Rules"
-            >
-              <X size={20} />
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            aria-label="Close Rules"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         {/* Goal */}
