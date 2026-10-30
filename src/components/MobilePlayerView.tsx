@@ -23,11 +23,14 @@ import {
   Info,
   Zap,
   LogOut,
+  GraduationCap,
 } from 'lucide-react';
 import { sound } from '../game/sound.ts';
 import { DiscardTokensModal } from './DiscardTokensModal.tsx';
 import { NobleTileView } from './NobleTileView.tsx';
 import { useWakeLock } from '../hooks/useWakeLock.ts';
+import { InteractiveTutorialOverlay, TutorialTargetId } from './InteractiveTutorialOverlay.tsx';
+import { hasSeenInteractiveTutorial } from '../utils/tutorialStorage.ts';
 
 interface MobilePlayerViewProps {
   publicState: PublicGameState;
@@ -61,6 +64,17 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
   const [stagedGems, setStagedGems] = useState<GemType[]>([]);
   // Detail sheet card selection
   const [inspectingCard, setInspectingCard] = useState<DevelopmentCard | null>(null);
+  // First-time player interactive tutorial overlay
+  const [isTutorialOpen, setIsTutorialOpen] = useState(() => !hasSeenInteractiveTutorial());
+
+  const handleTutorialStepTargetChange = React.useCallback((targetId: TutorialTargetId) => {
+    if (targetId === 'gem-bank' || targetId === 'buying-power') {
+      setActiveTab('personal');
+      setActionMode('take_gems');
+    } else if (targetId === 'development-cards' || targetId === 'nobles-dais') {
+      setActiveTab('table');
+    }
+  }, []);
 
   const myPlayer = publicState.players[myPlayerIndex] || publicState.players.find(p => p.id === myPlayerId);
   const isMyTurn = publicState.activePlayerIndex === myPlayerIndex && publicState.status !== 'game_over';
@@ -176,8 +190,8 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
               </div>
             </div>
 
-            {/* Score & Exit buttons */}
-            <div className="flex items-center gap-2 shrink-0">
+            {/* Score, Tutorial & Exit buttons */}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {/* VP Score Badge */}
               <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 shadow-sm">
                 <Crown size={14} className="text-amber-400" />
@@ -186,6 +200,16 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
                 </span>
                 <span className="text-[10px] text-amber-400/70 font-medium">/{publicState.targetVP} VP</span>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setIsTutorialOpen(true)}
+                className="p-1.5 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:text-amber-200 transition-all cursor-pointer"
+                title="Interactive Tutorial"
+                aria-label="Interactive Tutorial"
+              >
+                <GraduationCap size={14} />
+              </button>
 
               {onLeaveGame && (
                 <button
@@ -295,7 +319,10 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
 
               {/* Primary Action Buttons (Take Gems • Buy Card • Reserve) */}
               {isMyTurn && (
-                <section className="p-3 sm:p-3.5 rounded-2xl bg-[#121826] border border-amber-500/30 shadow-lg">
+                <section
+                  data-tutorial-target="gem-bank"
+                  className="p-3 sm:p-3.5 rounded-2xl bg-[#121826] border border-amber-500/30 shadow-lg"
+                >
                   <div className="text-[11px] font-['Cinzel'] font-bold text-amber-200 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
                     <Sparkles size={14} className="text-amber-400" />
                     <span>Your Turn Actions</span>
@@ -432,7 +459,10 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
               )}
 
               {/* Unified Buying Power Section: Total Power = Tokens + Discounts per color */}
-              <section className="p-3.5 sm:p-4 rounded-2xl bg-[#121826] border border-white/8 shadow-md">
+              <section
+                data-tutorial-target="buying-power"
+                className="p-3.5 sm:p-4 rounded-2xl bg-[#121826] border border-white/8 shadow-md"
+              >
                 <div className="flex items-center justify-between mb-2.5">
                   <div className="flex items-center gap-2">
                     <Zap size={15} className="text-amber-400" />
@@ -592,7 +622,10 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
           <div className="flex flex-col gap-4">
             {/* Nobles Horizontal Carousel at Top */}
             {publicState.nobles.length > 0 && (
-              <section className="p-3.5 rounded-2xl bg-[#070B14]/95 border border-amber-500/20 shadow-md">
+              <section
+                data-tutorial-target="nobles-dais"
+                className="p-3.5 rounded-2xl bg-[#070B14]/95 border border-amber-500/20 shadow-md"
+              >
                 <div className="flex items-center justify-between mb-2.5 pb-2 border-b border-amber-500/20">
                   <span className="font-['Cinzel'] font-bold text-xs text-amber-200 uppercase tracking-wide flex items-center gap-1.5">
                     <Shield size={14} className="text-amber-400" />
@@ -614,6 +647,7 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
             )}
 
             {/* 3 Tiers of Market Cards (Tier 3 -> Tier 2 -> Tier 1) */}
+            <div data-tutorial-target="development-cards" className="flex flex-col gap-4">
             {([3, 2, 1] as const).map(tier => {
               const cards = publicState.faceUpCards[tier] || [];
               const deckCount = publicState.decks[tier] || 0;
@@ -671,6 +705,7 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
                 </section>
               );
             })}
+            </div>
 
             {/* Floating "Back to My Hand" Button on Board Tab */}
             <div className="fixed bottom-4 left-1/2 -translate-x-1/2 landscape:bottom-3 landscape:right-4 landscape:left-auto landscape:translate-x-0 z-30">
@@ -831,6 +866,14 @@ export const MobilePlayerView: React.FC<MobilePlayerViewProps> = ({
           }}
         />
       )}
+
+      {/* Interactive First-Time Overlay Tutorial */}
+      <InteractiveTutorialOverlay
+        isOpen={isTutorialOpen}
+        onClose={() => setIsTutorialOpen(false)}
+        onStepTargetChange={handleTutorialStepTargetChange}
+        variant="mobile"
+      />
     </div>
   );
 };
